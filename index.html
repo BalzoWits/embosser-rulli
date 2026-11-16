@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rulli Embosser</title>
+<meta name="description" content="Disegna i rulli personalizzati per il Business Card Embosser e scaricali pronti da stampare in 3D.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='5' cy='8' r='4' fill='%23e8c27a'/%3E%3Ccircle cx='11' cy='8' r='4' fill='none' stroke='%23e8c27a' stroke-width='1.6'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{ "imports": { "three": "./lib/three.module.js" } }</script>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo">◉◎</span> Rulli Embosser <small>per il Business Card Embosser</small></div>
+  <div class="top-right">
+    <div id="status" class="status">Caricamento…</div>
+    <button id="dl3mfTop" type="button" class="primary" disabled>Scarica i rulli (.3mf)</button>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="panel">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="design" aria-selected="true">Disegno</button>
+      <button type="button" role="tab" data-tab="print" aria-selected="false">Rulli e stampa</button>
+    </div>
+    <div data-panel="design">
+    <section>
+      <div class="add">
+        <button type="button" data-add="text">+ Testo</button>
+        <button type="button" data-add="pattern">+ Motivo</button>
+        <button type="button" data-add="image">+ Immagine</button>
+        <button type="button" data-add="frame">+ Cornice</button>
+      </div>
+      <ul id="layers" class="layers" aria-label="Elementi del disegno"></ul>
+      <div id="props" class="props"></div>
+      <p class="hint">Più in alto nella lista = sta sopra. "Sottrai" buca gli elementi sotto (es. un nome scavato in un motivo).</p>
+      <input id="imageFile" type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden>
+      <input id="fontFile" type="file" accept=".ttf,.otf,.woff,.woff2" hidden>
+    </section>
+    </div>
+
+    <div data-panel="print" hidden>
+    <section>
+      <h2>Rulli</h2>
+      <div class="row">
+        <label>Rilievo <span class="unit">mm</span>
+          <input id="relief" type="number" min="0.6" max="1.6" step="0.1" value="1.2">
+        </label>
+        <label>Gioco per lato <span class="unit">mm</span>
+          <input id="clearance" type="number" min="0.1" max="0.5" step="0.05" value="0.2">
+        </label>
+      </div>
+      <label class="chk opt"><input id="mark" type="checkbox" checked> Tacca di fase sulla faccia superiore</label>
+      <p class="hint">Valori degli originali: rilievo 1,2 mm, gioco 0,2 mm. Con cartoncino spesso (oltre 350 g) prova un gioco di 0,25–0,3.</p>
+    </section>
+
+    <section>
+      <h2>Scarica</h2>
+      <div class="dl">
+        <button id="dl3mf" type="button" class="primary" disabled>Coppia di rulli (.3mf)</button>
+        <button id="dlPos" type="button" disabled>Positivo <small>STL</small></button>
+        <button id="dlNeg" type="button" disabled>Negativo <small>STL</small></button>
+        <button id="dlJson" type="button" class="ghost">Salva disegno</button>
+      </div>
+      <label class="file">Apri un disegno salvato (.json)
+        <input id="openJson" type="file" accept=".json,application/json">
+      </label>
+      <dl id="info" class="info"></dl>
+    </section>
+
+    <section>
+      <h2>Stampa e montaggio</h2>
+      <table id="settings" class="settings"></table>
+      <ol class="howto">
+        <li>Stampa i due rulli <b>in piedi, con la tacca in alto</b>, senza supporti, in PLA. Il .3mf imposta 3 pareti e layer 0,2; tutto il resto resta quello del profilo standard della tua stampante.</li>
+        <li>Scocca, ingranaggi e manopola sono quelli del modello originale: questi rulli li sostituiscono e basta.</li>
+        <li>Monta i rulli <b>con le tacche dallo stesso lato</b> e innesta gli ingranaggi in modo che, girando, le due tacche si trovino <b>una di fronte all'altra</b>.</li>
+        <li>Prova su un foglio di carta: se il segno esce doppio o schiacciato su un lato, sfila un ingranaggio e spostalo di un dente.</li>
+        <li>Il biglietto va fatto passare dal lato del tratteggio: le tacche affacciate indicano la cucitura del rullo (i bordi destro e sinistro della fascia).</li>
+      </ol>
+    </section>
+
+    <section class="credits">
+      <p>Scocca, ingranaggi e manopola: <a href="https://makerworld.com/it/models/148536" target="_blank" rel="noopener">Business Card Embosser di MakerSpace.Online</a> su MakerWorld. Questi rulli sono un progetto indipendente con le stesse misure di innesto (Ø30 × 60, incastro quadro 12 mm).</p>
+      <p>Font: SIL Open Font License (cartella <code>fonts/licenses</code>). Librerie: manifold-3d, three.js.</p>
+    </section>
+    </div>
+  </aside>
+
+  <section class="stage">
+    <div class="editor-head">
+      <h3>Fascia del rullo srotolata <span class="muted">94,2 × 57 mm · clic per selezionare, trascina per spostare</span></h3>
+      <div class="seg small" role="radiogroup" aria-label="Vista dell'editor">
+        <label><input type="radio" name="look" value="relief" checked> Rilievo</label>
+        <label><input type="radio" name="look" value="flat"> Disegno</label>
+        <label><input type="radio" name="look" value="back"> Retro del foglio</label>
+      </div>
+    </div>
+    <div class="legend"><span class="sw sw-card"></span> biglietto 85 × 55 <span class="sw sw-seam"></span> cucitura del rullo (i due bordi si toccano) <span id="lookHint"></span></div>
+    <div class="editor-wrap"><canvas id="editor" tabindex="0" aria-label="Editor della fascia del rullo"></canvas></div>
+
+    <ul id="warnings" class="warnings"></ul>
+
+    <div class="previews">
+      <div class="pane">
+        <div class="pane-head">
+          <h3>Rulli 3D</h3>
+          <div class="seg small" role="radiogroup" aria-label="Vista">
+            <label><input type="radio" name="view" value="mesh" checked> In presa</label>
+            <label><input type="radio" name="view" value="print"> Piatto</label>
+          </div>
+          <label class="chk"><input id="spin" type="checkbox" checked> Gira</label>
+        </div>
+        <div id="viewer" class="viewer"><div id="busy" class="busy">Genero i rulli…</div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
