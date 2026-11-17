@@ -27,7 +27,8 @@ const xmlAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').
 // Le settings finiscono in Metadata/model_settings.config (formato Bambu Studio / OrcaSlicer):
 // verificato con Bambu Studio 02.07 che le legge anche da un 3MF non salvato da lui.
 // center: dove mettere il centro del gruppo; i piatti Bambu partono da (0,0), 128 = centro di un 256×256.
-export function to3MF(objects, { title, center = [128, 128] } = {}) {
+// meta: altre voci di intestazione del modello (es. License, Designer, Description)
+export function to3MF(objects, { title, center = [128, 128], meta: head = {} } = {}) {
   const enc = new TextEncoder();
   let res = '', items = '', cfg = '';
   objects.forEach((ob, idx) => {
@@ -45,7 +46,7 @@ export function to3MF(objects, { title, center = [128, 128] } = {}) {
     cfg += `\n  <object id="${id}">${meta}\n    <part id="${id}" subtype="normal_part">\n      <metadata key="name" value="${xmlAttr(ob.name)}"/>\n      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>\n    </part>\n  </object>`;
   });
   const model = `<?xml version="1.0" encoding="UTF-8"?>
-<model unit="millimeter" xml:lang="it-IT" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Application">EmbosserRulli</metadata>${title ? `<metadata name="Title">${xmlAttr(title)}</metadata>` : ''}<resources>${res}</resources><build>${items}</build></model>`;
+<model unit="millimeter" xml:lang="it-IT" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Application">EmbosserRulli</metadata>${title ? `<metadata name="Title">${xmlAttr(title)}</metadata>` : ''}${Object.entries(head).map(([k, v]) => `<metadata name="${xmlAttr(k)}">${xmlAttr(v)}</metadata>`).join('')}<resources>${res}</resources><build>${items}</build></model>`;
   const modelSettings = `<?xml version="1.0" encoding="UTF-8"?>\n<config>${cfg}\n</config>\n`;
   const ct = `<?xml version="1.0" encoding="UTF-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>`;

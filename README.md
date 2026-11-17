@@ -16,6 +16,22 @@ rotazione e dimensione casuali.
 Poi si vede l'anteprima del biglietto in rilievo e il 3D, e si scarica un .3mf con le
 impostazioni di stampa già dentro (Bambu Studio / OrcaSlicer) oppure gli STL.
 
+## Portarulli (scheda "Portarulli")
+
+`kit.js` genera anche il resto dell'embosser: scocca, coperchio a scatto, quattro ingranaggi e una
+manovella estraibile con impugnatura girevole. È una ricostruzione con le stesse misure di incastro
+dell'originale (perni con cono, ingranaggi 24 denti modulo 1,24, interasse 30,1, pila 3,3 + 10 + 60 + 10),
+con alcune scelte diverse:
+
+- fase esatta per costruzione: ingranaggi A (segno ▲) con un dente sul segno, B (segno ▬) con un vano;
+  si montano con tutti i segni, tacche dei rulli comprese, rivolti verso l'altro rullo;
+- coperchio con gonna esterna e dente a gradini che scatta in una scanalatura della scocca;
+- manovella con albero quadro 6,1 che entra nell'ingranaggio alto B attraverso il coperchio e si sfila;
+- fondo della feritoia a 2,5 mm sopra la base dei rulli: il biglietto (55 mm) resta centrato sulla zona del disegno.
+
+`node test/kit-test.mjs` controlla le compenetrazioni del montaggio (ingranaggi in presa che girano,
+rulli e ingranaggi contro scocca e coperchio, chiave nella sede, aggancio del coperchio).
+
 ## Avvio in locale
 
 Serve un server HTTP (i moduli JS e il worker non funzionano da `file://`):
@@ -62,5 +78,10 @@ Interferenza in presa (volume comune mentre girano a 30,1 mm): rulli originali Z
 Confetti 0,4; questi rulli ~0,25 con il gioco di default. Con lo specchio sbagliato sale a ~23 mm³.
 
 ## Licenze
+
+Il portarulli (`kit.js` e i pezzi che genera) deriva dal
+[Business Card Embosser di MakerSpace.Online](https://makerworld.com/it/models/148536), licenza
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/): è rilasciato con la stessa licenza,
+solo per uso non commerciale. Il 3MF scaricato dal sito riporta licenza e attribuzione nei metadati.
 
 Font: SIL Open Font License (`fonts/licenses`). manifold-3d: Apache 2.0, three.js: MIT (`lib/licenses`).

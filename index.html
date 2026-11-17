@@ -23,6 +23,7 @@
     <div class="tabs" role="tablist">
       <button type="button" role="tab" data-tab="design" aria-selected="true">Disegno</button>
       <button type="button" role="tab" data-tab="print" aria-selected="false">Rulli e stampa</button>
+      <button type="button" role="tab" data-tab="kit" aria-selected="false">Portarulli</button>
     </div>
     <div data-panel="design">
     <section>
@@ -74,7 +75,7 @@
       <table id="settings" class="settings"></table>
       <ol class="howto">
         <li>Stampa i due rulli <b>in piedi, con la tacca in alto</b>, senza supporti, in PLA. Il .3mf imposta 3 pareti e layer 0,2; tutto il resto resta quello del profilo standard della tua stampante.</li>
-        <li>Scocca, ingranaggi e manopola sono quelli del modello originale: questi rulli li sostituiscono e basta.</li>
+        <li>Vanno sia nel modello originale sia nel portarulli della scheda <b>Portarulli</b> (lì la messa in fase è guidata dai segni: vedi il montaggio).</li>
         <li>Monta i rulli <b>con le tacche dallo stesso lato</b> e innesta gli ingranaggi in modo che, girando, le due tacche si trovino <b>una di fronte all'altra</b>.</li>
         <li>Prova su un foglio di carta: se il segno esce doppio o schiacciato su un lato, sfila un ingranaggio e spostalo di un dente.</li>
         <li>Il biglietto va fatto passare dal lato del tratteggio: le tacche affacciate indicano la cucitura del rullo (i bordi destro e sinistro della fascia).</li>
@@ -84,6 +85,38 @@
     <section class="credits">
       <p>Scocca, ingranaggi e manopola: <a href="https://makerworld.com/it/models/148536" target="_blank" rel="noopener">Business Card Embosser di MakerSpace.Online</a> su MakerWorld. Questi rulli sono un progetto indipendente con le stesse misure di innesto (Ø30 × 60, incastro quadro 12 mm).</p>
       <p>Font: SIL Open Font License (cartella <code>fonts/licenses</code>). Librerie: manifold-3d, three.js.</p>
+    </section>
+    </div>
+
+    <div data-panel="kit" hidden>
+    <section>
+      <h2>Portarulli</h2>
+      <p class="hint">Scocca, coperchio a scatto, quattro ingranaggi e una manovella lunga che si sfila quando non serve. Tutto si monta a incastro, senza viti né colla, e si stampa senza supporti.</p>
+      <label>Lunghezza della manovella <span class="unit">mm</span>
+        <input id="crankLen" type="number" min="35" max="90" step="5" value="55">
+      </label>
+      <div class="dl">
+        <button id="dlKit" type="button" class="primary" disabled>Portarulli (.3mf)</button>
+        <button id="dlAll" type="button" class="primary" disabled>Tutto: portarulli + rulli (.3mf)</button>
+      </div>
+      <p class="hint">Oppure i singoli pezzi in STL:</p>
+      <div id="dlKitParts" class="dl"></div>
+      <p class="hint">Nel .3mf: 3 pareti e layer 0,2 per tutti i pezzi, il resto dal profilo standard della stampante.</p>
+    </section>
+    <section>
+      <h2>Montaggio</h2>
+      <ol class="howto">
+        <li>Guarda la scocca dal davanti (la feritoia stretta): il lato <b>A</b> è a sinistra, il lato <b>B</b> a destra.</li>
+        <li>Ingranaggio con il <b>triangolo ▲</b> sul perno di sinistra, quello con la <b>barretta ▬</b> e il foro tondo sul perno di destra, <b>segni rivolti l'uno verso l'altro</b>.</li>
+        <li>Rullo <b>positivo a sinistra</b>, negativo a destra, con le <b>tacche in alto e rivolte l'una verso l'altra</b>: infilali sui perni quadri.</li>
+        <li>Sopra: l'altro ingranaggio col triangolo sul rullo di sinistra, quello con la barretta e il foro quadro sul rullo di destra, sempre con i segni affacciati.</li>
+        <li>Coperchio: il foro va sopra il rullo di destra. Spingi finché scatta.</li>
+        <li>Infila la manovella nel foro e l'impugnatura nel braccio (scatta). Gira nel verso della freccia: il biglietto entra dal davanti ed esce dietro.</li>
+        <li>Un velo di grasso o vaselina sugli ingranaggi rende tutto più morbido.</li>
+      </ol>
+    </section>
+    <section class="credits">
+      <p>Il portarulli è una ricostruzione del <a href="https://makerworld.com/it/models/148536" target="_blank" rel="noopener">Business Card Embosser di MakerSpace.Online</a>, distribuito con licenza <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.it" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>: stesse misure di incastro, pezzi ridisegnati. Anche questi pezzi sono rilasciati con licenza CC BY-NC-SA 4.0: non usarli per vendere oggetti o file.</p>
     </section>
     </div>
   </aside>
@@ -109,7 +142,9 @@
           <div class="seg small" role="radiogroup" aria-label="Vista">
             <label><input type="radio" name="view" value="mesh" checked> In presa</label>
             <label><input type="radio" name="view" value="print"> Piatto</label>
+            <label><input type="radio" name="view" value="kit"> Montato</label>
           </div>
+          <label class="chk" id="lidWrap" hidden><input id="showLid" type="checkbox"> Coperchio</label>
           <label class="chk"><input id="spin" type="checkbox" checked> Gira</label>
         </div>
         <div id="viewer" class="viewer"><div id="busy" class="busy">Genero i rulli…</div></div>

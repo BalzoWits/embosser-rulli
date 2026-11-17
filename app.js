@@ -724,8 +724,16 @@ const MAT = {
   positive: new THREE.MeshStandardMaterial({ color: '#e8c27a', roughness: 0.5, flatShading: true }),
   negative: new THREE.MeshStandardMaterial({ color: '#cfd2d6', roughness: 0.55, flatShading: true }),
 };
-const groups = { mesh: new THREE.Group(), print: new THREE.Group() };
-scene.add(groups.mesh, groups.print);
+Object.assign(MAT, {
+  body: new THREE.MeshStandardMaterial({ color: '#dfe3ea', roughness: 0.6, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide }),
+  lid: new THREE.MeshStandardMaterial({ color: '#dfe3ea', roughness: 0.6, transparent: true, opacity: 0.45, depthWrite: false, side: THREE.DoubleSide }),
+  gearA: new THREE.MeshStandardMaterial({ color: '#c99a45', roughness: 0.45, flatShading: true }),
+  gearB: new THREE.MeshStandardMaterial({ color: '#8f97a3', roughness: 0.45, flatShading: true }),
+  crank: new THREE.MeshStandardMaterial({ color: '#3a3a44', roughness: 0.5, flatShading: true }),
+  grip: new THREE.MeshStandardMaterial({ color: '#e8c27a', roughness: 0.6, flatShading: true }),
+});
+const groups = { mesh: new THREE.Group(), print: new THREE.Group(), kit: new THREE.Group() };
+scene.add(groups.mesh, groups.print, groups.kit);
 const bed = new THREE.GridHelper(140, 14, '#55555f', '#2e2e36');
 bed.rotation.x = Math.PI / 2;
 groups.print.add(bed);
@@ -752,12 +760,52 @@ function showResult(r) {
   const pp = new THREE.Mesh(gp, MAT.positive); pp.position.set(-22, 0, 0);
   const pn = new THREE.Mesh(gn, MAT.negative); pn.position.set(22, 0, 0);
   groups.print.add(pp, pn);
+  buildKitScene();
   if (!showResult.fitted) { fit(); showResult.fitted = true; }
   invalidate();
 }
-function setPhase() { if (spinP) { spinP.rotation.z = phi; spinN.rotation.z = Math.PI - phi; } }
+function setPhase() {
+  if (spinP) { spinP.rotation.z = phi; spinN.rotation.z = Math.PI - phi; }
+  if (kitPivot.A) { kitPivot.A.rotation.z = phi; kitPivot.B.rotation.z = -phi; }
+}
 
-function setView(v) { view3d = v; groups.mesh.visible = v === 'mesh'; groups.print.visible = v === 'print'; fit(); invalidate(); }
+// ---- portarulli montato: due perni di rotazione (lato A e lato B) che girano come gli ingranaggi
+let lastKit = null;
+const kitPivot = { A: null, B: null };
+const SIDE_A = ['gearA1', 'gearA2'], SIDE_B = ['gearB', 'gearBk', 'crank', 'grip'];
+function buildKitScene() {
+  clearGroup(groups.kit);
+  kitPivot.A = kitPivot.B = null;
+  if (!lastKit) return;
+  const a = AXIS_DIST / 2, zR = lastKit.stack.zRoller;
+  const A = new THREE.Group(), B = new THREE.Group();
+  A.position.set(-a, 0, 0); B.position.set(a, 0, 0);
+  groups.kit.add(A, B);
+  for (const [k, m] of Object.entries(lastKit.asm)) {
+    const g = toGeometry(m);
+    const mat = k === 'body' ? MAT.body : k === 'lid' ? MAT.lid : k.startsWith('gearA') ? MAT.gearA : k.startsWith('gearB') ? MAT.gearB : MAT[k];
+    const mesh = new THREE.Mesh(g, mat);
+    if (SIDE_A.includes(k)) { g.translate(a, 0, 0); A.add(mesh); }
+    else if (SIDE_B.includes(k)) { g.translate(-a, 0, 0); B.add(mesh); }
+    else { if (k === 'lid') mesh.visible = $('showLid').checked; mesh.renderOrder = 2; mesh.name = k; groups.kit.add(mesh); }
+  }
+  if (lastResult) {
+    const p = new THREE.Mesh(toGeometry(lastResult.positive), MAT.positive); p.position.set(0, 0, zR); A.add(p);
+    const n = new THREE.Mesh(toGeometry(lastResult.negative), MAT.negative); n.position.set(0, 0, zR); n.rotation.z = Math.PI; B.add(n);
+  }
+  kitPivot.A = A; kitPivot.B = B;
+  setPhase();
+  invalidate();
+}
+$('showLid').addEventListener('change', () => { const l = groups.kit.getObjectByName('lid'); if (l) l.visible = $('showLid').checked; invalidate(); });
+
+function setView(v) {
+  view3d = v;
+  for (const k of Object.keys(groups)) groups[k].visible = k === v;
+  $('lidWrap').hidden = v !== 'kit';
+  if (v === 'kit' && !lastKit) requestKit();
+  fit(); invalidate();
+}
 function fit() {
   const box = new THREE.Box3();
   groups[view3d].traverse((o) => { if (o.isMesh) box.expandByObject(o); });
@@ -766,7 +814,7 @@ function fit() {
   const radius = box.getSize(new THREE.Vector3()).length() / 2;
   const fov = THREE.MathUtils.degToRad(camera.fov) / 2;
   const fitFov = camera.aspect < 1 ? Math.atan(Math.tan(fov) * camera.aspect) : fov;
-  const dir = view3d === 'mesh' ? new THREE.Vector3(0.35, -1, 0.55) : new THREE.Vector3(0.2, -1, 0.8);
+  const dir = view3d === 'mesh' ? new THREE.Vector3(0.35, -1, 0.55) : view3d === 'kit' ? new THREE.Vector3(0.6, -1, 0.75) : new THREE.Vector3(0.2, -1, 0.8);
   camera.position.copy(c).add(dir.normalize().multiplyScalar((radius / Math.sin(fitFov)) * 1.02));
   controls.target.copy(c);
   controls.update();
@@ -787,7 +835,7 @@ controls.addEventListener('change', invalidate);
 let prevT = performance.now();
 renderer.setAnimationLoop((t) => {
   const dt = Math.min((t - prevT) / 1000, 0.1); prevT = t;
-  if (spinP && $('spin').checked && view3d === 'mesh') { phi += dt * 0.5; setPhase(); dirty = true; }
+  if (spinP && $('spin').checked && (view3d === 'mesh' || view3d === 'kit')) { phi += dt * 0.5; setPhase(); dirty = true; }
   controls.update();
   if (dirty) { renderer.render(scene, camera); dirty = false; }
 });
@@ -817,6 +865,30 @@ function doBuild() {
   w.postMessage({ id, alpha, W, H, sx, sy, params: readParams() }, [alpha.buffer]);
 }
 
+// portarulli: worker a parte, ricostruito solo quando cambia la manovella
+let kitWorker = null, kitReq = 0, kitTimer = 0;
+function requestKit() {
+  clearTimeout(kitTimer);
+  kitTimer = setTimeout(() => {
+    if (kitWorker) kitWorker.terminate();
+    const id = ++kitReq;
+    const w = kitWorker = new Worker('./worker.js', { type: 'module' });
+    w.onmessage = ({ data }) => {
+      w.terminate(); if (w === kitWorker) kitWorker = null;
+      if (data.id !== kitReq) return;
+      if (!data.ok) { setStatus('Errore nel portarulli: ' + data.error, true); return; }
+      lastKit = data;
+      buildKitScene();
+      renderKitDownloads();
+      $('dlKit').disabled = false;
+      $('dlAll').disabled = !lastResult;
+      if (view3d === 'kit') fit();
+    };
+    w.postMessage({ id, kind: 'kit', params: { crankLen: clampNum($('crankLen').value, 35, 90, 55) } });
+  }, 250);
+}
+$('crankLen').addEventListener('input', () => { store.set('crankLen', $('crankLen').value); requestKit(); });
+
 function onResult(data) {
   if (data.id !== reqId) return;
   busy(false);
@@ -825,6 +897,7 @@ function onResult(data) {
   renderInfo(data);
   $('warnings').innerHTML = data.warnings.map((x) => `<li>${escapeHtml(x)}</li>`).join('');
   for (const b of ['dl3mf', 'dl3mfTop', 'dlPos', 'dlNeg']) $(b).disabled = false;
+  $('dlAll').disabled = !lastKit;
   setStatus(`Pronto · ${fmt(data.ms / 1000)} s`);
 }
 
@@ -871,6 +944,74 @@ $('dl3mf').addEventListener('click', () => {
     { name: 'Rullo negativo', mesh: r.negative, offset: [22, 0], settings },
   ], { title: `Rulli embosser ${slug()}` }), `rulli-embosser-${slug()}.3mf`, 'model/3mf');
 });
+// ---- download del portarulli
+const KIT_PARTS = {
+  body: { label: 'Scocca', file: 'scocca' },
+  lid: { label: 'Coperchio', file: 'coperchio' },
+  gearA1: { label: 'Ingranaggio A ▲', file: 'ingranaggio-A', note: '×2' },
+  gearA2: { label: 'Ingranaggio A ▲', file: 'ingranaggio-A', hideStl: true },
+  gearB: { label: 'Ingranaggio B ▬ foro tondo', file: 'ingranaggio-B-foro-tondo' },
+  gearBk: { label: 'Ingranaggio B ▬ foro quadro', file: 'ingranaggio-B-foro-quadro' },
+  crank: { label: 'Manovella', file: 'manovella' },
+  grip: { label: 'Impugnatura', file: 'impugnatura' },
+};
+const LICENSE_META = {
+  License: 'BY-NC-SA',
+  Designer: 'Rulli Embosser (ricostruzione del Business Card Embosser di MakerSpace.Online)',
+  Description: 'Portarulli ricostruito dal Business Card Embosser di MakerSpace.Online (makerworld.com/it/models/148536), licenza CC BY-NC-SA 4.0. Uso non commerciale.',
+};
+function renderKitDownloads() {
+  const box = $('dlKitParts');
+  box.innerHTML = '';
+  for (const [k, p] of Object.entries(KIT_PARTS)) {
+    if (p.hideStl) continue;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = `${p.label}${p.note ? ` <small>${p.note}</small>` : ''}`;
+    b.onclick = () => download(toSTL(lastKit.print[k]), `portarulli-${p.file}.stl`, 'model/stl');
+    box.appendChild(b);
+  }
+}
+// pezzi in file sul piatto (256×256), centrati: larghezze vere dai vertici
+function meshSpan(m) {
+  const V = m.vertProperties; let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (let i = 0; i < V.length; i += 3) { if (V[i] < x0) x0 = V[i]; if (V[i] > x1) x1 = V[i]; if (V[i + 1] < y0) y0 = V[i + 1]; if (V[i + 1] > y1) y1 = V[i + 1]; }
+  return { x0, x1, y0, y1 };
+}
+function plateLayout(list, maxW = 235, gap = 7) {
+  const rows = [[]]; let w = 0;
+  for (const it of list) {
+    const s = meshSpan(it.mesh), iw = s.x1 - s.x0;
+    if (w > 0 && w + gap + iw > maxW) { rows.push([]); w = 0; }
+    rows[rows.length - 1].push({ it, s });
+    w += (w > 0 ? gap : 0) + iw;
+  }
+  const rowH = rows.map((r) => Math.max(...r.map(({ s }) => s.y1 - s.y0)));
+  const totalH = rowH.reduce((a, b) => a + b, 0) + gap * (rows.length - 1);
+  let y = totalH / 2;
+  rows.forEach((r, i) => {
+    const rw = r.reduce((a, { s }) => a + (s.x1 - s.x0), 0) + gap * (r.length - 1);
+    let x = -rw / 2;
+    const cy = y - rowH[i] / 2;
+    for (const { it, s } of r) { it.offset = [x - s.x0, cy - (s.y0 + s.y1) / 2]; x += s.x1 - s.x0 + gap; }
+    y -= rowH[i] + gap;
+  });
+  return list;
+}
+function kitObjects() {
+  const settings = bambuObjectSettings(PRINT);
+  return Object.entries(KIT_PARTS).map(([k, p]) => ({ name: p.label.replace(/[▲▬]\s?/g, '').trim(), mesh: lastKit.print[k], settings }));
+}
+$('dlKit').addEventListener('click', () => {
+  download(to3MF(plateLayout(kitObjects()), { title: 'Portarulli embosser', meta: LICENSE_META }), 'portarulli-embosser.3mf', 'model/3mf');
+});
+$('dlAll').addEventListener('click', () => {
+  const settings = bambuObjectSettings(PRINT);
+  const list = [...kitObjects(),
+    { name: 'Rullo positivo', mesh: lastResult.positive, settings },
+    { name: 'Rullo negativo', mesh: lastResult.negative, settings }];
+  download(to3MF(plateLayout(list), { title: `Embosser completo ${slug()}`, meta: LICENSE_META }), `embosser-completo-${slug()}.3mf`, 'model/3mf');
+});
 $('dlPos').addEventListener('click', () => download(toSTL(lastResult.positive), `rullo-positivo-${slug()}.stl`, 'model/stl'));
 $('dlNeg').addEventListener('click', () => download(toSTL(lastResult.negative), `rullo-negativo-${slug()}.stl`, 'model/stl'));
 
@@ -891,6 +1032,8 @@ window.__emb = { get els() { return els; }, renderDesign, camera, controls, fit,
 const saved = store.get('design', null);
 loadDesign(Array.isArray(saved) && saved.length ? saved : defaultDesign(), store.get('params', null));
 setView('mesh');
+$('crankLen').value = store.get('crankLen', 55);
+requestKit();
 {
   const l = store.get('look', 'relief');
   const r = document.querySelector(`input[name=look][value="${l}"]`);
