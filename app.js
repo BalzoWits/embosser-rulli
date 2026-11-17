@@ -782,7 +782,8 @@ function buildKitScene() {
   A.position.set(-a, 0, 0); B.position.set(a, 0, 0);
   groups.kit.add(A, B);
   for (const [k, m] of Object.entries(lastKit.asm)) {
-    const g = toGeometry(m);
+    // copia dei vertici: translate() lavora sul posto e i dati del kit servono ancora (ricostruzioni successive)
+    const g = toGeometry({ ...m, vertProperties: new Float32Array(m.vertProperties) });
     const mat = k === 'body' ? MAT.body : k === 'lid' ? MAT.lid : k.startsWith('gearA') ? MAT.gearA : k.startsWith('gearB') ? MAT.gearB : MAT[k];
     const mesh = new THREE.Mesh(g, mat);
     if (SIDE_A.includes(k)) { g.translate(a, 0, 0); A.add(mesh); }
@@ -1028,7 +1029,7 @@ async function changed() {
 for (const id of ['relief', 'clearance', 'mark']) $(id).addEventListener(id === 'mark' ? 'change' : 'input', () => { save(); scheduleBuild(); });
 
 // ------------------------------------------------------------------ avvio
-window.__emb = { get els() { return els; }, renderDesign, camera, controls, fit, maskCanvas, changed, boundsOf: (e) => bounds(maskCanvas.getContext('2d'), e) }; // per test e debug
+window.__emb = { get els() { return els; }, renderDesign, camera, controls, fit, maskCanvas, changed, scene, THREE, boundsOf: (e) => bounds(maskCanvas.getContext('2d'), e) }; // per test e debug
 const saved = store.get('design', null);
 loadDesign(Array.isArray(saved) && saved.length ? saved : defaultDesign(), store.get('params', null));
 setView('mesh');
