@@ -67,6 +67,24 @@ for (const [k, m] of Object.entries(kit.print)) {
   console.log(`stampa ${k.padEnd(7)} ${b.max.map((v, i) => (v - b.min[i]).toFixed(1)).join(' × ')} mm, genus ${m.genus()}, vol ${m.volume().toFixed(0)}`);
 }
 
+// 4) pareti troppo sottili per l'ugello da 0,4: fette orizzontali ogni 0,5 mm, apertura morfologica
+//    di raggio 0,42 (sparisce tutto ciò che è più stretto di ~0,85 mm = due linee di estrusione)
+const MIN = 0.85;
+for (const [k, m] of Object.entries(kit.print)) {
+  if (k.startsWith('gear')) continue; // la cresta dei denti è stretta per natura
+  const b = m.boundingBox();
+  const bad = [];
+  for (let z = b.min[2] + 0.25; z < b.max[2]; z += 0.5) {
+    const s = m.slice(z);
+    const area = s.area();
+    if (area < 0.01) continue;
+    const open = s.offset(-MIN / 2, 'Round', 2, 24).offset(MIN / 2, 'Round', 2, 24);
+    const lost = area - open.area();
+    if (lost > 1.0) bad.push(`z ${z.toFixed(1)}: ${lost.toFixed(1)} mm²`);
+  }
+  console.log(`${bad.length ? '✗' : '✓'} pareti sotto ${MIN} mm in ${k}${bad.length ? ': ' + bad.slice(0, 6).join(', ') + (bad.length > 6 ? ` … (${bad.length} fette)` : '') : ''}`);
+}
+
 mkdirSync(new URL('../out/kit/', import.meta.url), { recursive: true });
 const pack = (m) => { const g = m.getMesh(); return { vertProperties: g.vertProperties, triVerts: g.triVerts, numProp: g.numProp }; };
 for (const [k, m] of Object.entries(kit.print)) writeFileSync(new URL(`../out/kit/${k}.stl`, import.meta.url), toSTL(pack(m)));

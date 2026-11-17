@@ -43,7 +43,7 @@ export const K = {
   flangeT: 1.6,
   // aggancio del coperchio
   snapH: 8.4,          // altezza della zona assottigliata in cima alla parete
-  skirtT: 1.2,
+  skirtT: 1.6,
   skirtClr: 0.15,
   groove: 0.45,
   // coperchio
@@ -152,11 +152,11 @@ export function buildBody(wasm) {
   const Htot = st.zLid;
   const outer = stadium(CrossSection, a, rOut), inner = stadium(CrossSection, a, rIn);
   let body = outer.extrude(Htot).subtract(inner.extrude(Htot).translate([0, 0, K.floor]));
-  // assottigliamento esterno in cima (ci si infila la gonna del coperchio) e scanalatura d'aggancio
+  // scanalatura d'aggancio sulla faccia esterna, a parete piena (la gonna del coperchio sta fuori):
+  // sotto la scanalatura restano rOut - groove - rIn = 2,15 mm, abbastanza per 3 perimetri da 0,4
   const zs = Htot - K.snapH;
-  const thin = outer.subtract(stadium(CrossSection, a, rOut - K.skirtT));
-  body = body.subtract(thin.extrude(K.snapH + 0.01).translate([0, 0, zs]));
-  const grooveRing = stadium(CrossSection, a, rOut - K.skirtT).subtract(stadium(CrossSection, a, rOut - K.skirtT - K.groove));
+  // l'anello esce di 1 mm oltre la parete: facce coincidenti con la parete lasciano geometria sporca
+  const grooveRing = stadium(CrossSection, a, rOut + 1).subtract(stadium(CrossSection, a, rOut - K.groove));
   const zg = zs + K.snapH * 0.42;
   body = body.subtract(grooveRing.extrude(1.4).translate([0, 0, zg]));
   // perni per gli ingranaggi bassi
@@ -185,15 +185,16 @@ export function buildLid(wasm, bodyInfo) {
   const st = stack();
   const a = AXIS_DIST / 2;
   const { rOut, zg, zs } = bodyInfo;
-  const plate = stadium(CrossSection, a, rOut + K.skirtClr + K.skirtT * 0 + 0.0).extrude(K.lidT).translate([0, 0, st.zLid]);
-  // gonna esterna con dente d'aggancio a gradini (si stampa a testa in giù senza supporti)
-  const skIn = stadium(CrossSection, a, rOut - K.skirtT + K.skirtClr);
-  const skOut = stadium(CrossSection, a, rOut + K.skirtClr);
+  // gonna esterna attorno alla parete piena, con dente d'aggancio a gradini (si stampa a testa in giù)
+  const rSkIn = rOut + K.skirtClr, rSkOut = rSkIn + K.skirtT;
+  const plate = stadium(CrossSection, a, rSkOut).extrude(K.lidT).translate([0, 0, st.zLid]);
+  const skIn = stadium(CrossSection, a, rSkIn);
+  const skOut = stadium(CrossSection, a, rSkOut);
   let lid = plate.add(skOut.subtract(skIn).extrude(st.zLid - zs + 0.01).translate([0, 0, zs]));
   const steps = [0.15, 0.3, 0.42];
   const zb = zg + 0.2;
   steps.forEach((d, i) => {
-    const ring = skIn.subtract(stadium(CrossSection, a, rOut - K.skirtT + K.skirtClr - d));
+    const ring = skIn.subtract(stadium(CrossSection, a, rSkIn - d));
     lid = lid.add(ring.extrude(0.4).translate([0, 0, zb + (2 - i) * 0.35]));
   });
   // perno per l'ingranaggio alto A (sotto il coperchio, verso il basso)
