@@ -8,9 +8,15 @@ import { AXIS_DIST, R, DEFAULTS } from './geometry.js';
 import { toSTL, to3MF } from './export.js';
 import { PRINT, bambuObjectSettings } from './print-settings.js';
 import { embossImage } from './emboss.js';
+import { initI18n, t, isEn } from './i18n.js';
+import { TEXT, HTML, PATTERNS as I18N_PATTERNS } from './i18n-en.js';
+
+// traduzione della pagina: subito, prima di generare pannelli e messaggi
+initI18n({ TEXT, HTML, PATTERNS: I18N_PATTERNS });
 
 const $ = (id) => document.getElementById(id);
-const fmt = (n, d = 1) => n.toFixed(d).replace('.', ',');
+// numeri da mostrare: virgola decimale in italiano, punto in inglese
+const fmt = (n, d = 1) => (isEn ? n.toFixed(d) : n.toFixed(d).replace('.', ','));
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
@@ -131,7 +137,7 @@ function fieldHtml(f, el) {
     case 'center': return '<div class="row"><button type="button" data-center="h">Centra in orizzontale</button><button type="button" data-center="v">Centra in verticale</button></div>';
     case 'checkbox': return `<label class="chk opt"><input id="${id}" data-key="${f.key}" type="checkbox"${v ? ' checked' : ''}> ${f.label}</label>`;
     case 'seg': return `<div class="seg" data-wrap="${f.key}">${f.options.map(([k, t]) => `<label><input type="radio" name="${id}" data-key="${f.key}" value="${k}"${k === v ? ' checked' : ''}> ${t}</label>`).join('')}</div>`;
-    case 'image': return `<div class="row"><button type="button" id="pickImage">${el.src ? 'Cambia immagine…' : 'Scegli immagine…'}</button><span class="hint" style="align-self:center">${escapeHtml(el.name || 'nessun file')}</span></div><p class="hint">PNG, JPG o SVG. Va bene un logo nero su bianco: si può anche trascinare il file sulla fascia.</p>`;
+    case 'image': return `<div class="row"><button type="button" id="pickImage">${el.src ? 'Cambia immagine…' : 'Scegli immagine…'}</button><span class="hint" style="align-self:center"${el.name ? ' translate="no"' : ''}>${escapeHtml(el.name || 'nessun file')}</span></div><p class="hint">PNG, JPG o SVG. Va bene un logo nero su bianco: si può anche trascinare il file sulla fascia.</p>`;
   }
   return '';
 }
@@ -229,7 +235,7 @@ function renderLayers() {
   ul.innerHTML = [...els].reverse().map((e) => `
     <li data-id="${e.id}" class="${e.id === selId ? 'sel' : ''} ${e.visible ? '' : 'off'}">
       <span class="ty">${TYPE_NAME[e.type]}</span>
-      <span class="nm">${escapeHtml(label(e))}</span>
+      <span class="nm">${layerName(e)}</span>
       ${e.op === 'cut' ? '<span class="cut">sottrai</span>' : ''}
       <button type="button" data-act="vis" title="${e.visible ? 'Nascondi' : 'Mostra'}">${e.visible ? '◉' : '○'}</button>
       <button type="button" data-act="up" title="Porta sopra">↑</button>
@@ -237,6 +243,15 @@ function renderLayers() {
       <button type="button" data-act="dup" title="Duplica">⧉</button>
       <button type="button" data-act="del" title="Elimina">✕</button>
     </li>`).join('');
+}
+
+// nome nella lista: il testo scritto o il nome del file sono dell'utente e non si traducono;
+// il resto (nomi dei motivi, "Cornice", il suffisso "(motivo)") sì
+function layerName(e) {
+  const name = label(e);
+  const own = e.type === 'text' ? (e.text || '').split('\n')[0].slice(0, 24) : e.type === 'image' ? e.name : '';
+  if (!own || !name.startsWith(own)) return escapeHtml(name);
+  return `<span translate="no">${escapeHtml(own)}</span>${escapeHtml(name.slice(own.length))}`;
 }
 
 $('layers').addEventListener('click', (ev) => {
@@ -416,7 +431,7 @@ function drawEditor() {
   ctx.fillStyle = '#c0504d';
   for (const u of [0, C]) { ctx.beginPath(); ctx.moveTo(X(u) - 6, 0); ctx.lineTo(X(u) + 6, 0); ctx.lineTo(X(u), 9); ctx.closePath(); ctx.fill(); }
   ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = 'rgba(236,236,241,.75)';
-  ctx.fillText('tacca', 4, 12);
+  ctx.fillText(t('tacca'), 4, 12);
 
   // selezione con maniglie
   handles = [];
@@ -484,6 +499,7 @@ function drawEditor() {
 
 // etichetta scura con testo chiaro (gradi, misure), tenuta dentro l'editor
 function badge(ctx, text, x, y, big = false) {
+  text = t(text);
   ctx.save();
   ctx.font = `${big ? 600 : 500} ${big ? 14 : 12}px system-ui, sans-serif`;
   const w = ctx.measureText(text).width + 12, h = big ? 22 : 19;

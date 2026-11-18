@@ -3,6 +3,7 @@
 // Coordinate: u verso destra lungo la circonferenza (0…C), v verso il basso lungo l'asse (0…ZH).
 // v = 0 è il lato della tacca (faccia superiore dei rulli). I bordi u = 0 e u = C si toccano.
 import { C, ZH } from './geometry.js';
+import { t } from './i18n.js';
 
 export { C, ZH };
 export const CARD = { w: 85, h: 55, x: (C - 85) / 2, y: (ZH - 55) / 2 };
@@ -80,7 +81,7 @@ export function newElement(type) {
     alt: 'none', jitRot: 0, jitScale: 0, tseed: 1,
   };
   switch (type) {
-    case 'text': return { ...base, text: 'Il tuo nome', font: 'roboto-slab', size: 5, spacing: 0.3, lineH: 1.5, align: 'center', style: 'fill', stroke: 0.8, x: MID, y: ZH / 2, rot: 0, repeat: 1, ...tile };
+    case 'text': return { ...base, text: t('Il tuo nome'), font: 'roboto-slab', size: 5, spacing: 0.3, lineH: 1.5, align: 'center', style: 'fill', stroke: 0.8, x: MID, y: ZH / 2, rot: 0, repeat: 1, ...tile };
     case 'pattern': return { ...base, kind: 'pois', period: 6, thick: 2, angle: 45, area: 'all', x: r2(CARD.x + 5), y: r2(CARD.y + 5), w: 30, h: 20, seed: 1 };
     case 'image': return { ...base, src: null, name: '', threshold: 128, invert: false, w: 20, x: MID, y: ZH / 2, rot: 0, repeat: 1, ...tile };
     case 'frame': return { ...base, style: 'line', x: r2(CARD.x + 3), y: r2(CARD.y + 3), w: CARD.w - 6, h: CARD.h - 6, radius: 3, thick: 1 };
@@ -91,7 +92,7 @@ export function newElement(type) {
 export function defaultDesign() {
   const frame = newElement('frame');
   const name = { ...newElement('text'), font: 'roboto-slab', size: 6.5, spacing: 0.5, y: 25 };
-  const sub = { ...newElement('text'), text: 'STUDIO GRAFICO', font: 'montserrat-700', size: 3.8, spacing: 1.2, y: 35.5 };
+  const sub = { ...newElement('text'), text: t('STUDIO GRAFICO'), font: 'montserrat-700', size: 3.8, spacing: 1.2, y: 35.5 };
   return [frame, name, sub];
 }
 

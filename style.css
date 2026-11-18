@@ -35,6 +35,8 @@ code { font-size: 12px; }
 .status { color: var(--muted); font-size: 12.5px; text-align: right; }
 .top-right { display: flex; align-items: center; gap: 12px; }
 .top-right .primary { padding: 6px 12px; }
+.top-right .lang { padding: 4px 8px; font-size: 11.5px; font-weight: 600; letter-spacing: .6px; color: var(--muted); }
+.top-right .lang:hover { color: var(--text); }
 .tabs { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 4px; margin: 12px 0 2px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
 .tabs button { border: 0; background: transparent; color: var(--muted); padding: 6px; }
 .tabs button[aria-selected=true] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
