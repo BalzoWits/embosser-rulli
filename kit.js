@@ -369,6 +369,8 @@ export function buildKit(wasm, params = {}) {
     lid: onBed(flip(lid)),
     gearA1: onBed(gearA),
     gearA2: onBed(gearA),
+    // per l'STL: i due ingranaggi A uguali nello stesso file, affiancati
+    gearApair: onBed(onBed(gearA).translate([-18, 0, 0]).add(onBed(gearA).translate([18, 0, 0]))),
     gearB: onBed(gearB),
     gearBk: onBed(gearBk),
     hub: onBed(flip(hub)),            // collare sul piatto: il cono si allarga salendo, niente supporti

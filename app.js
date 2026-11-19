@@ -974,7 +974,7 @@ $('dlRollZip').addEventListener('click', () => download(toZip(rollerFiles()), `$
 // ---- portarulli: pezzi nell'ordine di montaggio (copies = quante volte va stampato)
 const KIT_PARTS = [
   { k: 'body', label: 'Scocca', file: ['scocca', 'body'] },
-  { k: 'gearA1', label: 'Ingranaggio A ▲', file: ['ingranaggio-A-triangolo', 'gear-A-triangle'], copies: 2 },
+  { k: 'gearA1', stl: 'gearApair', label: 'Ingranaggio A ▲', file: ['ingranaggi-A-triangolo-2-pezzi', 'gears-A-triangle-2-pieces'], copies: 2 },
   { k: 'gearB', label: 'Ingranaggio B ▬ foro tondo', file: ['ingranaggio-B-barretta-foro-tondo', 'gear-B-bar-round-hole'] },
   { k: 'gearBk', label: 'Ingranaggio B ▬ foro esagonale', file: ['ingranaggio-B-barretta-foro-esagonale', 'gear-B-bar-hex-hole'] },
   { k: 'hub', label: 'Mozzo', file: ['mozzo', 'hub'] },
@@ -984,10 +984,10 @@ const KIT_PARTS = [
 ];
 const crankTag = () => `${Math.round(lastKit.info.crankLen)}mm`;
 function kitFileName(p, i) {
-  const base = p.file[isEn ? 1 : 0] + (p.k === 'crank' ? `-${crankTag()}` : '') + (p.copies > 1 ? `_x${p.copies}` : '');
+  const base = p.file[isEn ? 1 : 0] + (p.k === 'crank' ? `-${crankTag()}` : '');
   return `${fname(FN.holder, String(i + 1).padStart(2, '0'), base)}.stl`;
 }
-const kitFiles = () => KIT_PARTS.map((p, i) => [kitFileName(p, i), toSTL(lastKit.print[p.k])]);
+const kitFiles = () => KIT_PARTS.map((p, i) => [kitFileName(p, i), toSTL(lastKit.print[p.stl || p.k])]);
 function renderKitDownloads() {
   const box = $('dlKitParts');
   box.innerHTML = '';
@@ -995,7 +995,7 @@ function renderKitDownloads() {
     const b = document.createElement('button');
     b.type = 'button';
     b.innerHTML = `${p.label}${p.copies > 1 ? ` <small>×${p.copies}</small>` : ''}`;
-    b.onclick = () => download(toSTL(lastKit.print[p.k]), kitFileName(p, i), 'model/stl');
+    b.onclick = () => download(toSTL(lastKit.print[p.stl || p.k]), kitFileName(p, i), 'model/stl');
     box.appendChild(b);
   });
 }
