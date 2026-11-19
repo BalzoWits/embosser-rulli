@@ -982,14 +982,6 @@ const KIT_PARTS = [
   { k: 'crank', label: 'Manovella', file: ['manovella', 'crank'] },
   { k: 'grip', label: 'Impugnatura', file: ['impugnatura', 'grip'] },
 ];
-const LICENSE_META = {
-  License: 'BY-NC-SA',
-  Designer: 'Rulli Embosser (ricostruzione del Business Card Embosser di MakerSpace.Online)',
-  Description: 'Portarulli ricostruito dal Business Card Embosser di MakerSpace.Online (makerworld.com/it/models/148536), licenza CC BY-NC-SA 4.0. Uso non commerciale.',
-};
-const LICENSE_TXT = isEn
-  ? 'Embosser holder rebuilt from the Business Card Embosser by MakerSpace.Online\r\nhttps://makerworld.com/en/models/148536\r\nLicense CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/): non-commercial use only.\r\n'
-  : 'Portarulli ricostruito dal Business Card Embosser di MakerSpace.Online\r\nhttps://makerworld.com/it/models/148536\r\nLicenza CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/deed.it): solo uso non commerciale.\r\n';
 const crankTag = () => `${Math.round(lastKit.info.crankLen)}mm`;
 function kitFileName(p, i) {
   const base = p.file[isEn ? 1 : 0] + (p.k === 'crank' ? `-${crankTag()}` : '') + (p.copies > 1 ? `_x${p.copies}` : '');
@@ -1042,20 +1034,20 @@ function kitObjects() {
   return out;
 }
 $('dlKit').addEventListener('click', () => {
-  download(to3MF(plateLayout(kitObjects()), { title: `Embosser ${FN.holder}`, meta: LICENSE_META }), `${fname(FN.holder)}.3mf`, 'model/3mf');
+  download(to3MF(plateLayout(kitObjects()), { title: `Embosser ${FN.holder}` }), `${fname(FN.holder)}.3mf`, 'model/3mf');
 });
 $('dlKitZip').addEventListener('click', () => {
-  download(toZip([...kitFiles(), [isEn ? 'README-license.txt' : 'LEGGIMI-licenza.txt', new TextEncoder().encode(LICENSE_TXT)]]),
+  download(toZip([...kitFiles()]),
     `${fname(FN.holder, FN.stl)}.zip`, 'application/zip');
 });
 $('dlAll').addEventListener('click', () => {
   const list = [...kitObjects(),
     { name: t('Rullo positivo'), mesh: lastResult.positive },
     { name: t('Rullo negativo'), mesh: lastResult.negative }];
-  download(to3MF(plateLayout(list), { title: `Embosser ${FN.all} ${slug()}`, meta: LICENSE_META }), `${fname(FN.all, slug())}.3mf`, 'model/3mf');
+  download(to3MF(plateLayout(list), { title: `Embosser ${FN.all} ${slug()}` }), `${fname(FN.all, slug())}.3mf`, 'model/3mf');
 });
 $('dlAllZip').addEventListener('click', () => {
-  download(toZip([...kitFiles(), ...rollerFiles(), [isEn ? 'README-license.txt' : 'LEGGIMI-licenza.txt', new TextEncoder().encode(LICENSE_TXT)]]),
+  download(toZip([...kitFiles(), ...rollerFiles()]),
     `${fname(FN.all, slug(), FN.stl)}.zip`, 'application/zip');
 });
 

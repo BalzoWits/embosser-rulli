@@ -263,8 +263,8 @@ export const HTML = {
     'Gear with the <b>triangle ▲</b> on the left pin, the one with the <b>bar ▬</b> and the round hole on the right pin, <b>marks facing each other</b>.',
   'Rullo <b>positivo a sinistra</b>, negativo a destra, con le <b>tacche in alto e rivolte l\'una verso l\'altra</b>: infilali sui perni quadri.':
     '<b>Positive roller on the left</b>, negative on the right, with the <b>notches on top and facing each other</b>: slide them onto the square pins.',
-  [`Il portarulli è una ricostruzione del ${MW_IT}Business Card Embosser di MakerSpace.Online</a>, distribuito con licenza <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.it" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>: stesse misure di incastro, pezzi ridisegnati. Anche questi pezzi sono rilasciati con licenza CC BY-NC-SA 4.0: non usarli per vendere oggetti o file.`]:
-    `The holder is a reconstruction of the ${MW_EN}Business Card Embosser by MakerSpace.Online</a>, released under the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a> license: same fitting dimensions, redesigned parts. These parts are released under CC BY-NC-SA 4.0 too: don't use them to sell objects or files.`,
+  [`Il portarulli è disegnato da zero ed è compatibile con il ${MW_IT}Business Card Embosser di MakerSpace.Online</a>: stesse misure di incastro, così i pezzi si possono mescolare con quelli originali.`]:
+    `The holder is designed from scratch and is compatible with the ${MW_EN}Business Card Embosser by MakerSpace.Online</a>: same fitting dimensions, so parts can be mixed with the original ones.`,
 };
 
 // [RegExp ancorata, sostituzione]: i numeri arrivano con la virgola (italiano) o col punto (inglese)

@@ -1,5 +1,5 @@
 // Portarulli: scocca, coperchio, 4 ingranaggi e manovella estraibile, compatibili con i rulli di geometry.js.
-// Ricostruzione con le misure del "Business Card Embosser" di MakerSpace.Online (CC BY-NC-SA 4.0):
+// Disegnato da zero, compatibile con il "Business Card Embosser" di MakerSpace.Online:
 // stessi incastri e stessa pila verticale, pezzi ridisegnati. Modulo puro (browser e node).
 //
 // Riferimento del montaggio: z = 0 sotto la scocca. Rullo A (positivo) a x = -15,05, rullo B (negativo,

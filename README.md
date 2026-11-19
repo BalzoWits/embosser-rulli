@@ -85,9 +85,9 @@ Confetti 0,4; questi rulli ~0,25 con il gioco di default. Con lo specchio sbagli
 
 ## Licenze
 
-Il portarulli (`kit.js` e i pezzi che genera) deriva dal
-[Business Card Embosser di MakerSpace.Online](https://makerworld.com/it/models/148536), licenza
-[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/): è rilasciato con la stessa licenza,
-solo per uso non commerciale. Il 3MF scaricato dal sito riporta licenza e attribuzione nei metadati.
+Il portarulli (`kit.js`) è disegnato da zero: nessun file dell'originale è incluso o copiato, ne
+riprende solo le misure di incastro per restare compatibile con il
+[Business Card Embosser di MakerSpace.Online](https://makerworld.com/it/models/148536).
+I file scaricati sono solo geometria, senza file di licenza né metadati di licenza.
 
 Font: SIL Open Font License (`fonts/licenses`). manifold-3d: Apache 2.0, three.js: MIT (`lib/licenses`).
