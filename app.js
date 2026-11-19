@@ -5,8 +5,7 @@ import {
   prepareImages, dropImageCache, bounds, moveBy, scaleBy, resizeRect, editMode, renderMask, renderDesign, maskSize,
 } from './design.js';
 import { AXIS_DIST, R, DEFAULTS } from './geometry.js';
-import { toSTL, to3MF } from './export.js';
-import { PRINT, bambuObjectSettings } from './print-settings.js';
+import { toSTL, to3MF, toZip } from './export.js';
 import { embossImage } from './emboss.js';
 import { initI18n, t, isEn } from './i18n.js';
 import { TEXT, HTML, PATTERNS as I18N_PATTERNS } from './i18n-en.js';
@@ -788,7 +787,7 @@ function setPhase() {
 // ---- portarulli montato: due perni di rotazione (lato A e lato B) che girano come gli ingranaggi
 let lastKit = null;
 const kitPivot = { A: null, B: null };
-const SIDE_A = ['gearA1', 'gearA2'], SIDE_B = ['gearB', 'gearBk', 'crank', 'grip'];
+const SIDE_A = ['gearA1', 'gearA2'], SIDE_B = ['gearB', 'gearBk', 'hub', 'crank', 'grip'];
 function buildKitScene() {
   clearGroup(groups.kit);
   kitPivot.A = kitPivot.B = null;
@@ -800,7 +799,7 @@ function buildKitScene() {
   for (const [k, m] of Object.entries(lastKit.asm)) {
     // copia dei vertici: translate() lavora sul posto e i dati del kit servono ancora (ricostruzioni successive)
     const g = toGeometry({ ...m, vertProperties: new Float32Array(m.vertProperties) });
-    const mat = k === 'body' ? MAT.body : k === 'lid' ? MAT.lid : k.startsWith('gearA') ? MAT.gearA : k.startsWith('gearB') ? MAT.gearB : MAT[k];
+    const mat = k === 'body' ? MAT.body : k === 'lid' ? MAT.lid : k.startsWith('gearA') ? MAT.gearA : k.startsWith('gearB') || k === 'hub' ? MAT.gearB : MAT[k];
     const mesh = new THREE.Mesh(g, mat);
     if (SIDE_A.includes(k)) { g.translate(a, 0, 0); A.add(mesh); }
     else if (SIDE_B.includes(k)) { g.translate(-a, 0, 0); B.add(mesh); }
@@ -897,8 +896,8 @@ function requestKit() {
       lastKit = data;
       buildKitScene();
       renderKitDownloads();
-      $('dlKit').disabled = false;
-      $('dlAll').disabled = !lastResult;
+      $('dlKit').disabled = $('dlKitZip').disabled = false;
+      $('dlAll').disabled = $('dlAllZip').disabled = !lastResult;
       if (view3d === 'kit') fit();
     };
     w.postMessage({ id, kind: 'kit', params: { crankLen: clampNum($('crankLen').value, 35, 90, 55) } });
@@ -913,8 +912,8 @@ function onResult(data) {
   showResult(data);
   renderInfo(data);
   $('warnings').innerHTML = data.warnings.map((x) => `<li>${escapeHtml(x)}</li>`).join('');
-  for (const b of ['dl3mf', 'dl3mfTop', 'dlPos', 'dlNeg']) $(b).disabled = false;
-  $('dlAll').disabled = !lastKit;
+  for (const b of ['dl3mf', 'dl3mfTop', 'dlPos', 'dlNeg', 'dlRollZip']) $(b).disabled = false;
+  $('dlAll').disabled = $('dlAllZip').disabled = !lastKit;
   setStatus(`Pronto · ${fmt(data.ms / 1000)} s`);
 }
 
@@ -932,9 +931,9 @@ function renderInfo(r) {
   $('info').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
 }
 
-$('settings').innerHTML = `<tr><th>Pezzo</th><th>Pareti</th><th>Layer</th><th>Il resto</th></tr><tr><td>Rulli (×2)</td><td>${PRINT.walls}</td><td>${fmt(PRINT.layer, 2)}</td><td>profilo standard</td></tr>`;
-
 // ------------------------------------------------------------------ download
+// I file contengono solo la geometria (niente impostazioni di stampa): le sceglie l'utente nello slicer.
+// Nomi: embosser_<gruppo>_<NN>_<pezzo>.stl, numerati nell'ordine di montaggio; in inglese se la pagina è in inglese.
 function download(bytes, name, type) {
   const url = URL.createObjectURL(new Blob([bytes], { type }));
   const a = Object.assign(document.createElement('a'), { href: url, download: name });
@@ -945,6 +944,10 @@ function slug() {
   const t = els.find((e) => e.type === 'text' && e.visible)?.text || 'rulli';
   return t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'rulli';
 }
+const FN = isEn
+  ? { rollers: 'rollers', pos: 'roller-positive', neg: 'roller-negative', holder: 'holder', all: 'complete', stl: 'STL' }
+  : { rollers: 'rulli', pos: 'rullo-positivo', neg: 'rullo-negativo', holder: 'portarulli', all: 'completo', stl: 'STL' };
+const fname = (...parts) => ['embosser', ...parts].filter(Boolean).join('_');
 $('dl3mfTop').addEventListener('click', () => $('dl3mf').click());
 // schede del pannello
 for (const t of document.querySelectorAll('[data-tab]')) {
@@ -953,41 +956,56 @@ for (const t of document.querySelectorAll('[data-tab]')) {
     for (const p of document.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== t.dataset.tab;
   });
 }
+const rollerFiles = () => [
+  [`${fname(FN.pos, slug())}.stl`, toSTL(lastResult.positive)],
+  [`${fname(FN.neg, slug())}.stl`, toSTL(lastResult.negative)],
+];
 $('dl3mf').addEventListener('click', () => {
   const r = lastResult;
-  const settings = bambuObjectSettings(PRINT);
   download(to3MF([
-    { name: 'Rullo positivo', mesh: r.positive, offset: [-22, 0], settings },
-    { name: 'Rullo negativo', mesh: r.negative, offset: [22, 0], settings },
-  ], { title: `Rulli embosser ${slug()}` }), `rulli-embosser-${slug()}.3mf`, 'model/3mf');
+    { name: t('Rullo positivo'), mesh: r.positive, offset: [-22, 0] },
+    { name: t('Rullo negativo'), mesh: r.negative, offset: [22, 0] },
+  ], { title: `Embosser ${FN.rollers} ${slug()}` }), `${fname(FN.rollers, slug())}.3mf`, 'model/3mf');
 });
-// ---- download del portarulli
-const KIT_PARTS = {
-  body: { label: 'Scocca', file: 'scocca' },
-  lid: { label: 'Coperchio', file: 'coperchio' },
-  gearA1: { label: 'Ingranaggio A ▲', file: 'ingranaggio-A', note: '×2' },
-  gearA2: { label: 'Ingranaggio A ▲', file: 'ingranaggio-A', hideStl: true },
-  gearB: { label: 'Ingranaggio B ▬ foro tondo', file: 'ingranaggio-B-foro-tondo' },
-  gearBk: { label: 'Ingranaggio B ▬ foro quadro', file: 'ingranaggio-B-foro-quadro' },
-  crank: { label: 'Manovella', file: 'manovella' },
-  grip: { label: 'Impugnatura', file: 'impugnatura' },
-};
+$('dlPos').addEventListener('click', () => { const [n, b] = rollerFiles()[0]; download(b, n, 'model/stl'); });
+$('dlNeg').addEventListener('click', () => { const [n, b] = rollerFiles()[1]; download(b, n, 'model/stl'); });
+$('dlRollZip').addEventListener('click', () => download(toZip(rollerFiles()), `${fname(FN.rollers, slug(), FN.stl)}.zip`, 'application/zip'));
+
+// ---- portarulli: pezzi nell'ordine di montaggio (copies = quante volte va stampato)
+const KIT_PARTS = [
+  { k: 'body', label: 'Scocca', file: ['scocca', 'body'] },
+  { k: 'gearA1', label: 'Ingranaggio A ▲', file: ['ingranaggio-A-triangolo', 'gear-A-triangle'], copies: 2 },
+  { k: 'gearB', label: 'Ingranaggio B ▬ foro tondo', file: ['ingranaggio-B-barretta-foro-tondo', 'gear-B-bar-round-hole'] },
+  { k: 'gearBk', label: 'Ingranaggio B ▬ foro esagonale', file: ['ingranaggio-B-barretta-foro-esagonale', 'gear-B-bar-hex-hole'] },
+  { k: 'hub', label: 'Mozzo', file: ['mozzo', 'hub'] },
+  { k: 'lid', label: 'Coperchio', file: ['coperchio', 'lid'] },
+  { k: 'crank', label: 'Manovella', file: ['manovella', 'crank'] },
+  { k: 'grip', label: 'Impugnatura', file: ['impugnatura', 'grip'] },
+];
 const LICENSE_META = {
   License: 'BY-NC-SA',
   Designer: 'Rulli Embosser (ricostruzione del Business Card Embosser di MakerSpace.Online)',
   Description: 'Portarulli ricostruito dal Business Card Embosser di MakerSpace.Online (makerworld.com/it/models/148536), licenza CC BY-NC-SA 4.0. Uso non commerciale.',
 };
+const LICENSE_TXT = isEn
+  ? 'Embosser holder rebuilt from the Business Card Embosser by MakerSpace.Online\r\nhttps://makerworld.com/en/models/148536\r\nLicense CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/): non-commercial use only.\r\n\r\nPrint without supports, parts are already oriented. Suggested: PLA, 3 walls, 0.2 mm layers.\r\nFile numbers follow the assembly order. "x2" = print it twice.\r\n'
+  : 'Portarulli ricostruito dal Business Card Embosser di MakerSpace.Online\r\nhttps://makerworld.com/it/models/148536\r\nLicenza CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/deed.it): solo uso non commerciale.\r\n\r\nStampa senza supporti, i pezzi sono già orientati. Consigliati: PLA, 3 pareti, layer 0,2.\r\nI numeri nei nomi seguono l\'ordine di montaggio. "x2" = da stampare due volte.\r\n';
+const crankTag = () => `${Math.round(lastKit.info.crankLen)}mm`;
+function kitFileName(p, i) {
+  const base = p.file[isEn ? 1 : 0] + (p.k === 'crank' ? `-${crankTag()}` : '') + (p.copies > 1 ? `_x${p.copies}` : '');
+  return `${fname(FN.holder, String(i + 1).padStart(2, '0'), base)}.stl`;
+}
+const kitFiles = () => KIT_PARTS.map((p, i) => [kitFileName(p, i), toSTL(lastKit.print[p.k])]);
 function renderKitDownloads() {
   const box = $('dlKitParts');
   box.innerHTML = '';
-  for (const [k, p] of Object.entries(KIT_PARTS)) {
-    if (p.hideStl) continue;
+  KIT_PARTS.forEach((p, i) => {
     const b = document.createElement('button');
     b.type = 'button';
-    b.innerHTML = `${p.label}${p.note ? ` <small>${p.note}</small>` : ''}`;
-    b.onclick = () => download(toSTL(lastKit.print[k]), `portarulli-${p.file}.stl`, 'model/stl');
+    b.innerHTML = `${p.label}${p.copies > 1 ? ` <small>×${p.copies}</small>` : ''}`;
+    b.onclick = () => download(toSTL(lastKit.print[p.k]), kitFileName(p, i), 'model/stl');
     box.appendChild(b);
-  }
+  });
 }
 // pezzi in file sul piatto (256×256), centrati: larghezze vere dai vertici
 function meshSpan(m) {
@@ -1015,22 +1033,32 @@ function plateLayout(list, maxW = 235, gap = 7) {
   });
   return list;
 }
+// nel 3MF ogni copia è un oggetto a sé (l'ingranaggio A compare due volte)
 function kitObjects() {
-  const settings = bambuObjectSettings(PRINT);
-  return Object.entries(KIT_PARTS).map(([k, p]) => ({ name: p.label.replace(/[▲▬]\s?/g, '').trim(), mesh: lastKit.print[k], settings }));
+  const out = [];
+  for (const p of KIT_PARTS) {
+    for (let c = 0; c < (p.copies || 1); c++) out.push({ name: t(p.label).replace(/[▲▬]\s?/g, '').trim() + (p.copies > 1 ? ` ${c + 1}` : ''), mesh: lastKit.print[p.k] });
+  }
+  return out;
 }
 $('dlKit').addEventListener('click', () => {
-  download(to3MF(plateLayout(kitObjects()), { title: 'Portarulli embosser', meta: LICENSE_META }), 'portarulli-embosser.3mf', 'model/3mf');
+  download(to3MF(plateLayout(kitObjects()), { title: `Embosser ${FN.holder}`, meta: LICENSE_META }), `${fname(FN.holder)}.3mf`, 'model/3mf');
+});
+$('dlKitZip').addEventListener('click', () => {
+  download(toZip([...kitFiles(), [isEn ? 'README-license.txt' : 'LEGGIMI-licenza.txt', new TextEncoder().encode(LICENSE_TXT)]]),
+    `${fname(FN.holder, FN.stl)}.zip`, 'application/zip');
 });
 $('dlAll').addEventListener('click', () => {
-  const settings = bambuObjectSettings(PRINT);
   const list = [...kitObjects(),
-    { name: 'Rullo positivo', mesh: lastResult.positive, settings },
-    { name: 'Rullo negativo', mesh: lastResult.negative, settings }];
-  download(to3MF(plateLayout(list), { title: `Embosser completo ${slug()}`, meta: LICENSE_META }), `embosser-completo-${slug()}.3mf`, 'model/3mf');
+    { name: t('Rullo positivo'), mesh: lastResult.positive },
+    { name: t('Rullo negativo'), mesh: lastResult.negative }];
+  download(to3MF(plateLayout(list), { title: `Embosser ${FN.all} ${slug()}`, meta: LICENSE_META }), `${fname(FN.all, slug())}.3mf`, 'model/3mf');
 });
-$('dlPos').addEventListener('click', () => download(toSTL(lastResult.positive), `rullo-positivo-${slug()}.stl`, 'model/stl'));
-$('dlNeg').addEventListener('click', () => download(toSTL(lastResult.negative), `rullo-negativo-${slug()}.stl`, 'model/stl'));
+$('dlAllZip').addEventListener('click', () => {
+  download(toZip([...kitFiles(), ...rollerFiles(), [isEn ? 'README-license.txt' : 'LEGGIMI-licenza.txt', new TextEncoder().encode(LICENSE_TXT)]]),
+    `${fname(FN.all, slug(), FN.stl)}.zip`, 'application/zip');
+});
+
 
 // ------------------------------------------------------------------ ciclo modifiche
 let busyAssets = 0;

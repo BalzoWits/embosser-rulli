@@ -54,7 +54,16 @@ for (const d of [0, 7, 22]) {
 // 3) incastri
 report('perni quadri vs rulli', vol(A.gearA1.add(A.gearA2), rollerA(0)) + vol(A.gearB.add(A.gearBk), rollerB(0)));
 report('rulli tra loro (0°)', vol(rollerA(0), rollerB(0)), 0.5);
-report('chiave manovella vs ingranaggio alto', vol(A.crank, A.gearBk));
+report('chiave manovella vs mozzo', vol(A.crank, A.hub));
+report('mozzo vs ingranaggio alto B', vol(A.hub, A.gearBk));
+report('mozzo vs coperchio (sede conica)', vol(A.hub, A.lid));
+report('mozzo vs ingranaggio alto A', vol(A.hub, A.gearA2));
+for (const d of [0, 7, 22]) report(`mozzo che gira vs ingranaggio A (${d}°)`, vol(rotAbout(A.hub, a, -d), rotAbout(A.gearA2, -a, d)));
+// il mozzo è davvero imprigionato? (il collare deve essere più stretto del foro alto, il cono più largo)
+{
+  const lift = vol(A.hub.translate([0, 0, 1.0]), A.lid);
+  console.log(`${lift > 0.5 ? '✓' : '✗'} mozzo trattenuto dal cono (sollevato di 1 mm tocca il coperchio: ${lift.toFixed(2)} mm³)`);
+}
 report('impugnatura vs braccio', vol(A.grip, A.crank));
 report('coperchio vs scocca (aggancio)', vol(A.lid, A.body));
 // distanze verticali

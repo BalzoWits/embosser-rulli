@@ -38,9 +38,10 @@ export const K = {
   wall: 2.6,
   innerClr: 1.0,       // dall'ingranaggio alla parete interna
   slitIn: 2.4,         // feritoia d'ingresso
-  slitOut: 5,          // feritoia d'uscita
+  slitOut: 8,          // feritoia d'uscita (un po' più larga: il biglietto in rilievo esce meglio)
   flange: 4,           // guide interne della feritoia d'ingresso
   flangeT: 1.6,
+  textH: 5, textStroke: 0.9, textDepth: 0.6,   // scritta "INSERT HERE" sulla scocca
   // aggancio del coperchio
   snapH: 8.4,          // altezza della zona assottigliata in cima alla parete
   skirtT: 1.6,
@@ -48,10 +49,16 @@ export const K = {
   groove: 0.45,
   // coperchio
   lidT: 3,
-  // manovella
-  keyS: 6.1, sockS: 6.5, sockDepth: 8,
-  shaftR: 6.55, lidHoleR: 6.85,
-  collarR: 9, armT: 6, armW0: 18, armW1: 14,
+  // mozzo (lato B): come la manopola originale, imprigionato dall'interno in una sede conica larga del
+  // coperchio, che centra l'asse alto del rullo B senza gioco (prima l'asse ballava e i rulli si aprivano)
+  seatTopR: 12.1, seatBotR: 13.6,   // sede conica nel coperchio (sopra stretta, sotto larga)
+  seatVGap: 0.2,                    // gioco verticale nel cono (~0,09 radiale)
+  hubKeyAF: 12, gearHexAF: 12.2, gearHexDepth: 7,   // esagono mozzo -> ingranaggio alto B
+  bossR: 11.8, bossH: 4,            // collare sopra il coperchio
+  hubSockAF: 16, hubSockDepth: 5.5, // sede esagonale per la manovella
+  // manovella: chiave esagonale larga (prima un quadro da 6,1 che si rompeva)
+  keyAF: 15.6, keyLen: 5.3,
+  collarR: 13, armT: 7, armW0: 22, armW1: 14,
   gripR: 8, gripL: 28, gripPinR: 3.0, gripHoleR: 3.15, gripLip: 0.45, gripSlot: 1.3,
 };
 
@@ -105,6 +112,9 @@ function markShape(CrossSection, type, rOut, d, z0) {
   return cs.extrude(d + 0.01).translate([0, 0, z0]);
 }
 
+// esagono con un vertice su +x, dato lo spigolo-spigolo opposto (chiave)
+const hexCS = (CrossSection, af) => CrossSection.circle(af / Math.sqrt(3), 6);
+
 // Ingranaggio nel suo riferimento: corona z 0..gearH (lato foro in basso), perno quadro gearH..gearH+pegH.
 // type 'A' = dente sul segno, 'B' = vano sul segno. bore: 'post' (foro con cono) o 'socket' (quadro per la manovella)
 export function buildGear(wasm, { type = 'A', bore = 'post' } = {}) {
@@ -128,14 +138,48 @@ export function buildGear(wasm, { type = 'A', bore = 'post' } = {}) {
     ]]), 96);
     g = g.subtract(hole);
   } else {
-    const q = K.sockS;
-    const sock = CrossSection.square([q, q], true).extrude(K.sockDepth + 0.1).translate([0, 0, -0.1])
-      .add(CrossSection.square([q + 1.2, q + 1.2], true).extrude(0.6, 0, 0, [q / (q + 1.2), q / (q + 1.2)]).translate([0, 0, -0.01]));
+    // sede esagonale per il mozzo, con invito smussato
+    const hx = hexCS(CrossSection, K.gearHexAF), hx2 = hexCS(CrossSection, K.gearHexAF + 1.2);
+    const sock = hx.extrude(K.gearHexDepth + 0.1).translate([0, 0, -0.1])
+      .add(hx2.extrude(0.6, 0, 0, [K.gearHexAF / (K.gearHexAF + 1.2), K.gearHexAF / (K.gearHexAF + 1.2)]).translate([0, 0, -0.01]));
     g = g.subtract(sock);
   }
   // segni a +x su entrambe le facce della corona
   g = g.subtract(markShape(CrossSection, type, ra - 1.6, 0.4, -0.01)).subtract(markShape(CrossSection, type, ra - 1.6, 0.4, H - 0.39));
   return g;
+}
+
+// ---------------------------------------------------------------- scritte a tratti
+// Piccolo font a tratti (maiuscole), unità = altezza delle lettere; niente file di font nel worker.
+const GLYPHS = {
+  I: { w: 0, s: [[[0, 0], [0, 1]]] },
+  N: { w: 0.62, s: [[[0, 0], [0, 1], [0.62, 0], [0.62, 1]]] },
+  S: { w: 0.62, s: [[[0.62, 0.84], [0.5, 1], [0.12, 1], [0, 0.86], [0, 0.62], [0.12, 0.52], [0.5, 0.48], [0.62, 0.38], [0.62, 0.14], [0.5, 0], [0.12, 0], [0, 0.16]]] },
+  E: { w: 0.56, s: [[[0.56, 1], [0, 1], [0, 0], [0.56, 0]], [[0, 0.5], [0.44, 0.5]]] },
+  R: { w: 0.6, s: [[[0, 0], [0, 1], [0.46, 1], [0.6, 0.86], [0.6, 0.64], [0.46, 0.5], [0, 0.5]], [[0.3, 0.5], [0.6, 0]]] },
+  T: { w: 0.62, s: [[[0, 1], [0.62, 1]], [[0.31, 1], [0.31, 0]]] },
+  H: { w: 0.62, s: [[[0, 0], [0, 1]], [[0.62, 0], [0.62, 1]], [[0, 0.5], [0.62, 0.5]]] },
+  ' ': { w: 0.3, s: [] },
+};
+export function strokeText(CrossSection, text, h, stroke) {
+  const r = stroke / 2, gap = 0.36 * h;
+  const parts = [];
+  let x = 0;
+  for (const ch of text.toUpperCase()) {
+    const g = GLYPHS[ch];
+    if (!g) continue;
+    for (const line of g.s) {
+      for (let i = 0; i + 1 < line.length; i++) {
+        const [a, b] = [line[i], line[i + 1]];
+        parts.push(CrossSection.hull([
+          CrossSection.circle(r, 16).translate([x + a[0] * h, a[1] * h]),
+          CrossSection.circle(r, 16).translate([x + b[0] * h, b[1] * h]),
+        ]));
+      }
+    }
+    x += g.w * h + gap;
+  }
+  return CrossSection.union(parts);
 }
 
 // ---------------------------------------------------------------- scocca e coperchio
@@ -177,6 +221,19 @@ export function buildBody(wasm) {
   // invito svasato all'ingresso
   const flareIn = new CrossSection([[[-K.slitIn / 2, -rIn + 0.2], [K.slitIn / 2, -rIn + 0.2], [K.slitIn / 2 + 1.2, -rOut - 0.5], [-K.slitIn / 2 - 1.2, -rOut - 0.5]]], 'EvenOdd');
   body = body.subtract(flareIn.extrude(big).translate([0, 0, zSlit]));
+  // scritta verticale "INSERT HERE" accanto alla feritoia d'ingresso, incisa 0,6 mm, si legge dal basso
+  const txt = strokeText(CrossSection, 'INSERT HERE', K.textH, K.textStroke);
+  const tb = txt.bounds();
+  const len = tb.max[0] - tb.min[0];
+  const z0 = zSlit + (zs - 2 - zSlit - len) / 2 - tb.min[0];    // centrata in altezza sotto la zona d'aggancio
+  const xBase = -K.slitIn / 2 - 3.2;                            // base delle lettere, a sinistra della feritoia
+  const depth = K.textDepth;
+  // (u, v, w) -> (x = xBase - v, y = -rOut + depth - w, z = z0 + u): rotazione propria (determinante +1)
+  const engr = txt.extrude(depth + 1).warp((p) => {
+    const u = p[0], v = p[1], w = p[2];
+    p[0] = xBase - v; p[1] = -rOut + depth - w; p[2] = z0 + u;
+  });
+  body = body.subtract(engr);
   return { body, rIn, rOut, zg, zs, zSlit };
 }
 
@@ -201,10 +258,12 @@ export function buildLid(wasm, bodyInfo) {
   const post = Manifold.revolve(new CrossSection([[[0, 0], [K.postR, 0], [K.postR, K.postCyl], [K.postTopR, K.postCyl + K.postConeH], [0, K.postCyl + K.postConeH]]]), 96)
     .mirror([0, 0, 1]).translate([-a, 0, st.zLid + 0.01]);
   lid = lid.add(post);
-  // foro per l'albero della manovella sopra l'ingranaggio B
-  lid = lid.subtract(Manifold.cylinder(K.lidT + 2, K.lidHoleR, K.lidHoleR, 96).translate([a, 0, st.zLid - 1]));
+  // sede conica del mozzo sopra l'ingranaggio B: stretta in alto, larga in basso (il mozzo entra da sotto)
+  const tap = (K.seatBotR - K.seatTopR) / K.lidT;
+  const seat = Manifold.cylinder(K.lidT + 2, K.seatBotR + tap, K.seatTopR - tap, 128).translate([a, 0, st.zLid - 1]);
+  lid = lid.subtract(seat);
   // freccia del verso di rotazione (orario visto dall'alto), incisa sulla faccia superiore
-  const ra = 12.5, w = 1.4;
+  const ra = 16.5, w = 1.4;
   const arcPts = [];
   const a0 = 200 * D2R, a1 = 320 * D2R; // archi in senso orario: da 200° scende a ... (visto dall'alto)
   for (let i = 0; i <= 24; i++) { const t = a1 - ((a1 - a0) * i) / 24; arcPts.push([a + (ra + w / 2) * Math.cos(t), (ra + w / 2) * Math.sin(t)]); }
@@ -220,25 +279,57 @@ export function buildLid(wasm, bodyInfo) {
   return lid;
 }
 
+// quote del mozzo senza costruirlo (servono alla manovella)
+function buildHubInfo() {
+  const st = stack();
+  return { bossTop: st.zLid - st.zTopFace + K.lidT + K.bossH };
+}
+
+// ---------------------------------------------------------------- mozzo (lato B)
+// Riferimento: asse z, z = 0 sulla faccia superiore dell'ingranaggio alto B. Sotto: esagono nell'ingranaggio;
+// in mezzo: cono che appoggia nella sede del coperchio; sopra: collare con la sede esagonale della manovella.
+export function buildHub(wasm) {
+  const { Manifold, CrossSection } = wasm;
+  const st = stack();
+  const zL = st.zLid - st.zTopFace;          // sotto del coperchio (0,4)
+  const g = K.seatVGap;
+  const tap = (K.seatBotR - K.seatTopR) / K.lidT;
+  // cono parallelo alla sede, abbassato di seatVGap; parte un filo sotto il coperchio
+  const coneBot = zL - g, coneTop = zL + K.lidT - g;
+  let hub = Manifold.cylinder(coneBot + 0.01, K.seatBotR, K.seatBotR, 128)
+    .add(Manifold.cylinder(coneTop - coneBot, K.seatBotR, K.seatTopR, 128).translate([0, 0, coneBot]));
+  const bossTop = zL + K.lidT + K.bossH;
+  hub = hub.add(Manifold.cylinder(bossTop - coneTop + 0.01, K.bossR, K.bossR, 128).translate([0, 0, coneTop - 0.01]));
+  // esagono verso l'ingranaggio, punta smussata
+  const kx = hexCS(CrossSection, K.hubKeyAF);
+  const kLen = K.gearHexDepth - 0.3;
+  hub = hub.add(kx.extrude(kLen - 0.6 + 0.01).translate([0, 0, -kLen + 0.6]))
+    .add(kx.extrude(0.6, 0, 0, [(K.hubKeyAF - 1.2) / K.hubKeyAF, (K.hubKeyAF - 1.2) / K.hubKeyAF]).mirror([0, 0, 1]).translate([0, 0, -kLen + 0.6]));
+  // sede esagonale per la manovella, dall'alto, con invito smussato
+  const sx = hexCS(CrossSection, K.hubSockAF), sx2 = hexCS(CrossSection, K.hubSockAF + 1.2);
+  hub = hub.subtract(sx.extrude(K.hubSockDepth + 0.1).translate([0, 0, bossTop - K.hubSockDepth]))
+    .subtract(sx2.extrude(0.61, 0, 0, [K.hubSockAF / (K.hubSockAF + 1.2), K.hubSockAF / (K.hubSockAF + 1.2)]).mirror([0, 0, 1]).translate([0, 0, bossTop + 0.01]));
+  return { hub, bossTop };
+}
+
 // ---------------------------------------------------------------- manovella estraibile
-// Riferimento: asse della manovella sull'asse z, z = 0 al sotto del collare. Albero e chiave verso -z.
+// Riferimento: asse della manovella sull'asse z, z = 0 al sotto del braccio. Chiave esagonale verso -z.
 export function buildCrank(wasm, { crankLen = KIT_DEFAULTS.crankLen } = {}) {
   const { Manifold, CrossSection } = wasm;
   const st = stack();
-  const zCollar = st.zLidTop + 0.2;                         // quota del sotto del collare nel montaggio
-  const shaftLen = zCollar - (st.zTopFace + 0.2);           // tratto tondo (attraversa il coperchio)
-  const keyLen = K.sockDepth - 0.4;
+  const { bossTop } = buildHubInfo();
+  const zCollar = st.zTopFace + bossTop + 0.2;                // sotto del braccio nel montaggio
   const L = crankLen;
   // braccio: inviluppo tra il mozzo e la testa dell'impugnatura
   const arm2d = CrossSection.hull([CrossSection.circle(K.armW0 / 2, 64), CrossSection.circle(K.armW1 / 2, 64).translate([L, 0])]);
   let arm = arm2d.extrude(K.armT);
-  arm = arm.add(Manifold.cylinder(K.armT, K.collarR, K.collarR, 64));
-  // smusso superiore del braccio (più comodo e più bello)
-  const shaft = Manifold.cylinder(shaftLen + 0.01, K.shaftR, K.shaftR, 96).translate([0, 0, -shaftLen]);
-  const q = K.keyS;
-  const key = CrossSection.square([q, q], true).extrude(keyLen - 0.6).translate([0, 0, -shaftLen - keyLen + 0.6])
-    .add(CrossSection.square([q, q], true).extrude(0.6, 0, 0, [(q - 1.2) / q, (q - 1.2) / q]).mirror([0, 0, 1]).translate([0, 0, -shaftLen - keyLen + 0.6]));
-  let crank = arm.add(shaft).add(key);
+  arm = arm.add(Manifold.cylinder(K.armT, K.collarR, K.collarR, 96));
+  // chiave esagonale larga (si infila nel mozzo), raccordata al braccio da un gradino conico
+  const kx = hexCS(CrossSection, K.keyAF);
+  const kl = K.keyLen + 0.2; // 0,2 = spazio tra braccio e collare del mozzo
+  const key = kx.extrude(kl - 0.6 + 0.01).translate([0, 0, -kl + 0.6])
+    .add(kx.extrude(0.6, 0, 0, [(K.keyAF - 1.2) / K.keyAF, (K.keyAF - 1.2) / K.keyAF]).mirror([0, 0, 1]).translate([0, 0, -kl + 0.6]));
+  let crank = arm.add(key);
   crank = crank.subtract(Manifold.cylinder(K.armT + 2, K.gripHoleR, K.gripHoleR, 48).translate([L, 0, -1]));
   // impugnatura girevole: manicotto con due linguette a scatto che passano nel foro del braccio
   const sleeve = Manifold.cylinder(K.gripL, K.gripR, K.gripR, 96)
@@ -265,6 +356,7 @@ export function buildKit(wasm, params = {}) {
   const gearB = buildGear(wasm, { type: 'B', bore: 'post' });
   const gearBk = buildGear(wasm, { type: 'B', bore: 'socket' });
   const { crank, grip, zCollar, L } = buildCrank(wasm, p);
+  const { hub } = buildHub(wasm);
 
   // pezzi da stampare (in piedi sul piatto, senza supporti)
   const onBed = (m) => {
@@ -279,6 +371,7 @@ export function buildKit(wasm, params = {}) {
     gearA2: onBed(gearA),
     gearB: onBed(gearB),
     gearBk: onBed(gearBk),
+    hub: onBed(flip(hub)),            // collare sul piatto: il cono si allarga salendo, niente supporti
     crank: onBed(flip(crank)),
     grip: onBed(flip(grip)),
   };
@@ -292,6 +385,7 @@ export function buildKit(wasm, params = {}) {
     gearB: gearB.rotate([0, 0, 180]).translate([a, 0, st.zGearBot]),
     gearA2: topFlip(gearA).translate([-a, 0, st.zTopFace]),
     gearBk: topFlip(gearBk).rotate([0, 0, 180]).translate([a, 0, st.zTopFace]),
+    hub: hub.translate([a, 0, st.zTopFace]),
     crank: crank.translate([a, 0, zCollar]),
     grip: grip.translate([a + L, 0, zCollar + K.armT]),
   };

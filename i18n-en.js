@@ -213,6 +213,17 @@ export const TEXT = {
   'Ingranaggio B ▬ foro quadro': 'Gear B ▬ square hole',
   'Manovella': 'Crank',
   'Impugnatura': 'Handle',
+  'Ingranaggio B ▬ foro esagonale': 'Gear B ▬ hex hole',
+  'Mozzo': 'Hub',
+  'Rullo positivo': 'Positive roller',
+  'Rullo negativo': 'Negative roller',
+  'Entrambi': 'Both',
+  'Tutto': 'Everything',
+  'tutti gli STL .zip': 'all STLs .zip',
+  'I file contengono solo la geometria, già orientata per la stampa senza supporti: impostazioni libere nello slicer (consigliati 3 pareti e layer 0,2). I nomi dei file seguono l\'ordine di montaggio.':
+    'The files contain geometry only, already oriented to print without supports: choose your own slicer settings (3 walls and 0.2 mm layers suggested). File names follow the assembly order.',
+  'Sopra: l\'altro ingranaggio col triangolo sul rullo di sinistra, quello con la barretta e il foro esagonale sul rullo di destra, sempre con i segni affacciati.':
+    'On top: the other triangle gear on the left roller, the bar gear with the hex hole on the right roller, again with the marks facing each other.',
 
   // ---- stato, avvisi, errori
   'Carico i font…': 'Loading fonts…',
@@ -224,6 +235,16 @@ export const TEXT = {
 
 export const HTML = {
   // Rulli e stampa: istruzioni
+  'Stampa i due rulli <b>in piedi, con la tacca in alto</b>, senza supporti, in PLA. Consigliati 3 pareti e layer 0,2. I file (.3mf e STL) contengono solo la geometria: le impostazioni le scegli tu nello slicer.':
+    'Print both rollers <b>standing up, notch on top</b>, without supports, in PLA. Suggested: 3 walls and 0.2 mm layers. The files (.3mf and STL) contain geometry only: you choose the settings in your slicer.',
+  'Entrambi <small>STL .zip</small>': 'Both <small>STL .zip</small>',
+  'Portarulli <small>tutti gli STL .zip</small>': 'Holder <small>all STLs .zip</small>',
+  'Tutto <small>STL .zip</small>': 'Everything <small>STL .zip</small>',
+  // Portarulli: montaggio (mozzo e manovella)
+  'Infila il <b>mozzo</b> nell\'esagono dell\'ingranaggio di destra, poi il coperchio: il cono del mozzo entra nel foro da sotto e resta imprigionato. Spingi finché il coperchio scatta.':
+    'Fit the <b>hub</b> into the hex of the right gear, then the lid: the hub\'s cone enters the hole from below and stays captured. Press until the lid snaps.',
+  'Infila la manovella nell\'esagono del mozzo e l\'impugnatura nel braccio (scatta). La manovella si sfila tirandola su. Gira nel verso della freccia: il biglietto entra dal lato con la scritta <b>INSERT HERE</b> ed esce dietro.':
+    'Push the crank into the hub\'s hex and the handle into the arm (it snaps). Pull the crank up to remove it. Turn in the direction of the arrow: the card goes in on the <b>INSERT HERE</b> side and comes out the back.',
   'Stampa i due rulli <b>in piedi, con la tacca in alto</b>, senza supporti, in PLA. Il .3mf imposta 3 pareti e layer 0,2; tutto il resto resta quello del profilo standard della tua stampante.':
     'Print both rollers <b>standing up, notch on top</b>, without supports, in PLA. The .3mf sets 3 walls and 0.2 mm layers; everything else stays as in your printer\'s standard profile.',
   'Vanno sia nel modello originale sia nel portarulli della scheda <b>Portarulli</b> (lì la messa in fase è guidata dai segni: vedi il montaggio).':

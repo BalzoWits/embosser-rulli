@@ -67,6 +67,9 @@ const CRC = (() => {
 })();
 function crc32(d) { let c = 0xffffffff; for (let i = 0; i < d.length; i++) c = CRC[(c ^ d[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
 
+// zip senza compressione: files = [[nome, Uint8Array], ...]
+export function toZip(files) { return zipStore(files); }
+
 function zipStore(files) {
   const enc = new TextEncoder();
   const parts = [], central = [];
