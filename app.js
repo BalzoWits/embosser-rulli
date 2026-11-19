@@ -988,8 +988,8 @@ const LICENSE_META = {
   Description: 'Portarulli ricostruito dal Business Card Embosser di MakerSpace.Online (makerworld.com/it/models/148536), licenza CC BY-NC-SA 4.0. Uso non commerciale.',
 };
 const LICENSE_TXT = isEn
-  ? 'Embosser holder rebuilt from the Business Card Embosser by MakerSpace.Online\r\nhttps://makerworld.com/en/models/148536\r\nLicense CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/): non-commercial use only.\r\n\r\nPrint without supports, parts are already oriented. Suggested: PLA, 3 walls, 0.2 mm layers.\r\nFile numbers follow the assembly order. "x2" = print it twice.\r\n'
-  : 'Portarulli ricostruito dal Business Card Embosser di MakerSpace.Online\r\nhttps://makerworld.com/it/models/148536\r\nLicenza CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/deed.it): solo uso non commerciale.\r\n\r\nStampa senza supporti, i pezzi sono già orientati. Consigliati: PLA, 3 pareti, layer 0,2.\r\nI numeri nei nomi seguono l\'ordine di montaggio. "x2" = da stampare due volte.\r\n';
+  ? 'Embosser holder rebuilt from the Business Card Embosser by MakerSpace.Online\r\nhttps://makerworld.com/en/models/148536\r\nLicense CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/): non-commercial use only.\r\n'
+  : 'Portarulli ricostruito dal Business Card Embosser di MakerSpace.Online\r\nhttps://makerworld.com/it/models/148536\r\nLicenza CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/deed.it): solo uso non commerciale.\r\n';
 const crankTag = () => `${Math.round(lastKit.info.crankLen)}mm`;
 function kitFileName(p, i) {
   const base = p.file[isEn ? 1 : 0] + (p.k === 'crank' ? `-${crankTag()}` : '') + (p.copies > 1 ? `_x${p.copies}` : '');
