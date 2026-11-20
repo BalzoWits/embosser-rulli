@@ -26,11 +26,14 @@ con alcune scelte diverse:
 - fase esatta per costruzione: ingranaggi A (segno ▲) con un dente sul segno, B (segno ▬) con un vano;
   si montano con tutti i segni, tacche dei rulli comprese, rivolti verso l'altro rullo;
 - coperchio con gonna esterna e dente a gradini che scatta in una scanalatura della scocca;
+- perno quadro degli ingranaggi 11,8 come l'originale (con 11,4 il rullo aveva 0,3 mm di gioco per lato e i rulli si aprivano);
 - asse alto del rullo B centrato come nell'originale: un mozzo imprigionato da sotto in una sede conica
   larga del coperchio (Ø24/27), innestato con un esagono da 12 nell'ingranaggio alto B. La prima versione
   teneva quell'asse solo con la manovella (gioco ~0,5 mm): sotto carico il rullo B si inclinava, i rulli si
   aprivano in alto e incidevano poco;
-- manovella estraibile con esagono da 15,6 nel mozzo (la prima, con un quadro da 6,1, si rompeva);
+- manovella estraibile con aggancio a baionetta sul collare del mozzo: coppa con 3 denti che entrano dalle fessure e,
+  girando di 40° nel verso della freccia, vanno sotto il bordo fino al fermo (prima un quadro da 6,1 che si rompeva,
+  poi un esagono da 15,6 che si sfilava);
 - scritta INSERT HERE incisa accanto alla feritoia d'ingresso; uscita larga 8 mm;
 - nomi dei file numerati nell'ordine di montaggio, STL anche tutti in uno zip con il file della licenza;
 - fondo della feritoia a 2,5 mm sopra la base dei rulli: il biglietto (55 mm) resta centrato sulla zona del disegno.

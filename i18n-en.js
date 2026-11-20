@@ -243,8 +243,8 @@ export const HTML = {
   // Portarulli: montaggio (mozzo e manovella)
   'Infila il <b>mozzo</b> nell\'esagono dell\'ingranaggio di destra, poi il coperchio: il cono del mozzo entra nel foro da sotto e resta imprigionato. Spingi finché il coperchio scatta.':
     'Fit the <b>hub</b> into the hex of the right gear, then the lid: the hub\'s cone enters the hole from below and stays captured. Press until the lid snaps.',
-  'Infila la manovella nell\'esagono del mozzo e l\'impugnatura nel braccio (scatta). La manovella si sfila tirandola su. Gira nel verso della freccia: il biglietto entra dal lato con la scritta <b>INSERT HERE</b> ed esce dietro.':
-    'Push the crank into the hub\'s hex and the handle into the arm (it snaps). Pull the crank up to remove it. Turn in the direction of the arrow: the card goes in on the <b>INSERT HERE</b> side and comes out the back.',
+  'Infila l\'impugnatura nel braccio (scatta). Appoggia la manovella sul mozzo con i <b>tre denti nelle fessure</b>, spingila giù e <b>girala nel verso della freccia</b> finché si ferma: resta agganciata. Per toglierla girala un po\' indietro e sollevala. Il biglietto entra dal lato con la scritta <b>INSERT HERE</b> ed esce dietro.':
+    'Snap the grip into the arm. Set the crank on the hub with the <b>three teeth in the slots</b>, push it down and <b>turn it in the direction of the arrow</b> until it stops: it stays locked. To remove it, turn it back a little and lift it. The card goes in on the side marked <b>INSERT HERE</b> and comes out the back.',
   'Stampa i due rulli <b>in piedi, con la tacca in alto</b>, senza supporti, in PLA. Il .3mf imposta 3 pareti e layer 0,2; tutto il resto resta quello del profilo standard della tua stampante.':
     'Print both rollers <b>standing up, notch on top</b>, without supports, in PLA. The .3mf sets 3 walls and 0.2 mm layers; everything else stays as in your printer\'s standard profile.',
   'Vanno sia nel modello originale sia nel portarulli della scheda <b>Portarulli</b> (lì la messa in fase è guidata dai segni: vedi il montaggio).':

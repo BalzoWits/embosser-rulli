@@ -54,7 +54,23 @@ for (const d of [0, 7, 22]) {
 // 3) incastri
 report('perni quadri vs rulli', vol(A.gearA1.add(A.gearA2), rollerA(0)) + vol(A.gearB.add(A.gearBk), rollerB(0)));
 report('rulli tra loro (0°)', vol(rollerA(0), rollerB(0)), 0.5);
-report('chiave manovella vs mozzo', vol(A.crank, A.hub));
+report('manovella agganciata vs mozzo', vol(A.crank, A.hub));
+// baionetta: entra dall'alto ruotata di bayTravel, gira fino al fermo, poi è trattenuta
+{
+  const crankAt = (deg, dz = 0) => rotAbout(A.crank, a, deg).translate([0, 0, dz]);
+  let worst = 0;
+  for (const dz of [0, 1, 2, 3, 4, 6, 8]) worst = Math.max(worst, vol(crankAt(K.bayTravel, dz), A.hub));
+  report('baionetta: inserimento dall\'alto (ruotata, sollevata 0-8 mm)', worst);
+  worst = 0;
+  for (let d = 0; d <= K.bayTravel; d += 5) worst = Math.max(worst, vol(crankAt(d), A.hub));
+  report('baionetta: rotazione da ingresso a fermo', worst);
+  const stop = vol(crankAt(-3), A.hub);
+  console.log(`${stop > 0.5 ? '✓' : '✗'} baionetta: fermo di fine corsa (oltre di 3° tocca: ${stop.toFixed(2)} mm³)`);
+  const held = vol(crankAt(0, 1), A.hub);
+  console.log(`${held > 0.5 ? '✓' : '✗'} baionetta: agganciata non si sfila (sollevata 1 mm tocca: ${held.toFixed(2)} mm³)`);
+  const held2 = vol(crankAt(K.bayTravel / 2, 1), A.hub);
+  console.log(`${held2 > 0.5 ? '✓' : '✗'} baionetta: a metà rotazione già trattenuta (${held2.toFixed(2)} mm³)`);
+}
 report('mozzo vs ingranaggio alto B', vol(A.hub, A.gearBk));
 report('mozzo vs coperchio (sede conica)', vol(A.hub, A.lid));
 report('mozzo vs ingranaggio alto A', vol(A.hub, A.gearA2));
