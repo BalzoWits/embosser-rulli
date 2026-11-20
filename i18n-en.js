@@ -47,9 +47,9 @@ export const TEXT = {
     'Feed the card in on the dashed-outline side: the facing notches mark the roller seam (the right and left edges of the strip).',
 
   // ---- scheda Portarulli
-  'Scocca, coperchio a scatto, quattro ingranaggi e una manovella lunga che si sfila quando non serve. Tutto si monta a incastro, senza viti né colla, e si stampa senza supporti.':
-    'Body, snap-on lid, four gears and a long crank that pulls out when not in use. Everything fits together without screws or glue, and prints without supports.',
-  'Lunghezza della manovella': 'Crank length',
+  'Scocca, coperchio a scatto, quattro ingranaggi e una chiave a farfalla che si sfila quando non serve. Tutto si monta a incastro, senza viti né colla, e si stampa senza supporti.':
+    'Body, snap-on lid, four gears and a wind-up style key that pulls out when not in use. Everything fits together without screws or glue, and prints without supports.',
+  'Larghezza della chiave': 'Key width',
   'Portarulli (.3mf)': 'Holder (.3mf)',
   'Tutto: portarulli + rulli (.3mf)': 'Everything: holder + rollers (.3mf)',
   'Oppure i singoli pezzi in STL:': 'Or the individual parts as STL:',
@@ -212,7 +212,7 @@ export const TEXT = {
   'Ingranaggio B ▬ foro tondo': 'Gear B ▬ round hole',
   'Ingranaggio B ▬ foro quadro': 'Gear B ▬ square hole',
   'Manovella': 'Crank',
-  'Impugnatura': 'Handle',
+  'Chiave': 'Key',
   'Ingranaggio B ▬ foro esagonale': 'Gear B ▬ hex hole',
   'Mozzo': 'Hub',
   'Rullo positivo': 'Positive roller',
@@ -243,8 +243,8 @@ export const HTML = {
   // Portarulli: montaggio (mozzo e manovella)
   'Infila il <b>mozzo</b> nell\'esagono dell\'ingranaggio di destra, poi il coperchio: il cono del mozzo entra nel foro da sotto e resta imprigionato. Spingi finché il coperchio scatta.':
     'Fit the <b>hub</b> into the hex of the right gear, then the lid: the hub\'s cone enters the hole from below and stays captured. Press until the lid snaps.',
-  'Infila l\'impugnatura nel braccio (scatta). Appoggia la manovella sul mozzo con i <b>tre denti nelle fessure</b>, spingila giù e <b>girala nel verso della freccia</b> finché si ferma: resta agganciata. Per toglierla girala un po\' indietro e sollevala. Il biglietto entra dal lato con la scritta <b>INSERT HERE</b> ed esce dietro.':
-    'Snap the grip into the arm. Set the crank on the hub with the <b>three teeth in the slots</b>, push it down and <b>turn it in the direction of the arrow</b> until it stops: it stays locked. To remove it, turn it back a little and lift it. The card goes in on the side marked <b>INSERT HERE</b> and comes out the back.',
+  'Infila la <b>chiave</b> nella fessura del mozzo e spingila giù finché scatta. Per toglierla tirala su. Gira nel verso della freccia: il biglietto entra dal lato con la scritta <b>INSERT HERE</b> ed esce dietro.':
+    'Push the <b>key</b> into the slot of the hub until it clicks. Pull it up to remove it. Turn in the direction of the arrow: the card goes in on the side marked <b>INSERT HERE</b> and comes out the back.',
   'Stampa i due rulli <b>in piedi, con la tacca in alto</b>, senza supporti, in PLA. Il .3mf imposta 3 pareti e layer 0,2; tutto il resto resta quello del profilo standard della tua stampante.':
     'Print both rollers <b>standing up, notch on top</b>, without supports, in PLA. The .3mf sets 3 walls and 0.2 mm layers; everything else stays as in your printer\'s standard profile.',
   'Vanno sia nel modello originale sia nel portarulli della scheda <b>Portarulli</b> (lì la messa in fase è guidata dai segni: vedi il montaggio).':

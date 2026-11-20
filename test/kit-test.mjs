@@ -49,27 +49,18 @@ for (const d of [0, 7, 22]) {
   report(`scocca vs ingranaggi (${d}°)`, vol(A.body, rotAbout(A.gearA1, -a, d).add(rotAbout(A.gearB, a, -d)).add(rotAbout(A.gearA2, -a, d)).add(rotAbout(A.gearBk, a, -d))));
   report(`scocca vs rulli (${d}°)`, vol(A.body, rollerA(d).add(rollerB(d))));
   report(`coperchio vs ingranaggi alti (${d}°)`, vol(A.lid, rotAbout(A.gearA2, -a, d).add(rotAbout(A.gearBk, a, -d))));
-  report(`coperchio vs manovella (${d}°)`, vol(A.lid, rotAbout(A.crank, a, -d)));
 }
 // 3) incastri
 report('perni quadri vs rulli', vol(A.gearA1.add(A.gearA2), rollerA(0)) + vol(A.gearB.add(A.gearBk), rollerB(0)));
 report('rulli tra loro (0°)', vol(rollerA(0), rollerB(0)), 0.5);
-report('manovella agganciata vs mozzo', vol(A.crank, A.hub));
-// baionetta: entra dall'alto ruotata di bayTravel, gira fino al fermo, poi è trattenuta
+report('chiave vs mozzo (inserita)', vol(A.key, A.hub));
 {
-  const crankAt = (deg, dz = 0) => rotAbout(A.crank, a, deg).translate([0, 0, dz]);
+  // senza i dentini la lama deve entrare libera fino in fondo; con i dentini, sollevata, deve agganciarsi
+  const up = (dz) => vol(A.key.translate([0, 0, dz]), A.hub);
   let worst = 0;
-  for (const dz of [0, 1, 2, 3, 4, 6, 8]) worst = Math.max(worst, vol(crankAt(K.bayTravel, dz), A.hub));
-  report('baionetta: inserimento dall\'alto (ruotata, sollevata 0-8 mm)', worst);
-  worst = 0;
-  for (let d = 0; d <= K.bayTravel; d += 5) worst = Math.max(worst, vol(crankAt(d), A.hub));
-  report('baionetta: rotazione da ingresso a fermo', worst);
-  const stop = vol(crankAt(-3), A.hub);
-  console.log(`${stop > 0.5 ? '✓' : '✗'} baionetta: fermo di fine corsa (oltre di 3° tocca: ${stop.toFixed(2)} mm³)`);
-  const held = vol(crankAt(0, 1), A.hub);
-  console.log(`${held > 0.5 ? '✓' : '✗'} baionetta: agganciata non si sfila (sollevata 1 mm tocca: ${held.toFixed(2)} mm³)`);
-  const held2 = vol(crankAt(K.bayTravel / 2, 1), A.hub);
-  console.log(`${held2 > 0.5 ? '✓' : '✗'} baionetta: a metà rotazione già trattenuta (${held2.toFixed(2)} mm³)`);
+  for (const dz of [0.6, 1.5, 3, 5]) worst = Math.max(worst, up(dz));
+  console.log(`  dentini contro la parete mentre si sfila: max ${worst.toFixed(2)} mm³ (deve essere > 0: è lo scatto)`);
+  for (const d of [0, 7, 22]) report(`chiave che gira vs coperchio (${d}°)`, vol(A.lid, rotAbout(A.key, a, -d)));
 }
 report('mozzo vs ingranaggio alto B', vol(A.hub, A.gearBk));
 report('mozzo vs coperchio (sede conica)', vol(A.hub, A.lid));
@@ -80,13 +71,12 @@ for (const d of [0, 7, 22]) report(`mozzo che gira vs ingranaggio A (${d}°)`, v
   const lift = vol(A.hub.translate([0, 0, 1.0]), A.lid);
   console.log(`${lift > 0.5 ? '✓' : '✗'} mozzo trattenuto dal cono (sollevato di 1 mm tocca il coperchio: ${lift.toFixed(2)} mm³)`);
 }
-report('impugnatura vs braccio', vol(A.grip, A.crank));
 report('coperchio vs scocca (aggancio)', vol(A.lid, A.body));
 // distanze verticali
 const bb = (m) => m.boundingBox();
 console.log('quote: ingr. basso', bb(A.gearA1).min[2].toFixed(2), '-', bb(A.gearA1).max[2].toFixed(2),
   '| rullo', zR.toFixed(2), '-', (zR + 60).toFixed(2), '| ingr. alto', bb(A.gearA2).min[2].toFixed(2), '-', bb(A.gearA2).max[2].toFixed(2),
-  '| coperchio', bb(A.lid).min[2].toFixed(2), '-', bb(A.lid).max[2].toFixed(2), '| manovella fino a', bb(A.grip).max[2].toFixed(2));
+  '| coperchio', bb(A.lid).min[2].toFixed(2), '-', bb(A.lid).max[2].toFixed(2), '| chiave fino a', bb(A.key).max[2].toFixed(2));
 for (const [k, m] of Object.entries(kit.print)) {
   const b = m.boundingBox();
   console.log(`stampa ${k.padEnd(7)} ${b.max.map((v, i) => (v - b.min[i]).toFixed(1)).join(' × ')} mm, genus ${m.genus()}, vol ${m.volume().toFixed(0)}`);

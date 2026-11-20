@@ -744,8 +744,7 @@ Object.assign(MAT, {
   lid: new THREE.MeshStandardMaterial({ color: '#dfe3ea', roughness: 0.6, transparent: true, opacity: 0.45, depthWrite: false, side: THREE.DoubleSide }),
   gearA: new THREE.MeshStandardMaterial({ color: '#c99a45', roughness: 0.45, flatShading: true }),
   gearB: new THREE.MeshStandardMaterial({ color: '#8f97a3', roughness: 0.45, flatShading: true }),
-  crank: new THREE.MeshStandardMaterial({ color: '#3a3a44', roughness: 0.5, flatShading: true }),
-  grip: new THREE.MeshStandardMaterial({ color: '#e8c27a', roughness: 0.6, flatShading: true }),
+  key: new THREE.MeshStandardMaterial({ color: '#e07a4f', roughness: 0.5, flatShading: true }),
 });
 const groups = { mesh: new THREE.Group(), print: new THREE.Group(), kit: new THREE.Group() };
 scene.add(groups.mesh, groups.print, groups.kit);
@@ -787,7 +786,7 @@ function setPhase() {
 // ---- portarulli montato: due perni di rotazione (lato A e lato B) che girano come gli ingranaggi
 let lastKit = null;
 const kitPivot = { A: null, B: null };
-const SIDE_A = ['gearA1', 'gearA2'], SIDE_B = ['gearB', 'gearBk', 'hub', 'crank', 'grip'];
+const SIDE_A = ['gearA1', 'gearA2'], SIDE_B = ['gearB', 'gearBk', 'hub', 'key'];
 function buildKitScene() {
   clearGroup(groups.kit);
   kitPivot.A = kitPivot.B = null;
@@ -900,10 +899,10 @@ function requestKit() {
       $('dlAll').disabled = $('dlAllZip').disabled = !lastResult;
       if (view3d === 'kit') fit();
     };
-    w.postMessage({ id, kind: 'kit', params: { crankLen: clampNum($('crankLen').value, 35, 90, 55) } });
+    w.postMessage({ id, kind: 'kit', params: { keyW: clampNum($('keyW').value, 45, 80, 60) } });
   }, 250);
 }
-$('crankLen').addEventListener('input', () => { store.set('crankLen', $('crankLen').value); requestKit(); });
+$('keyW').addEventListener('input', () => { store.set('keyW', $('keyW').value); requestKit(); });
 
 function onResult(data) {
   if (data.id !== reqId) return;
@@ -979,12 +978,11 @@ const KIT_PARTS = [
   { k: 'gearBk', label: 'Ingranaggio B ▬ foro esagonale', file: ['ingranaggio-B-barretta-foro-esagonale', 'gear-B-bar-hex-hole'] },
   { k: 'hub', label: 'Mozzo', file: ['mozzo', 'hub'] },
   { k: 'lid', label: 'Coperchio', file: ['coperchio', 'lid'] },
-  { k: 'crank', label: 'Manovella', file: ['manovella', 'crank'] },
-  { k: 'grip', label: 'Impugnatura', file: ['impugnatura', 'grip'] },
+  { k: 'key', label: 'Chiave', file: ['chiave', 'key'] },
 ];
-const crankTag = () => `${Math.round(lastKit.info.crankLen)}mm`;
+const keyTag = () => `${Math.round(lastKit.info.keyW)}mm`;
 function kitFileName(p, i) {
-  const base = p.file[isEn ? 1 : 0] + (p.k === 'crank' ? `-${crankTag()}` : '');
+  const base = p.file[isEn ? 1 : 0] + (p.k === 'key' ? `-${keyTag()}` : '');
   return `${fname(FN.holder, String(i + 1).padStart(2, '0'), base)}.stl`;
 }
 const kitFiles = () => KIT_PARTS.map((p, i) => [kitFileName(p, i), toSTL(lastKit.print[p.stl || p.k])]);
@@ -1069,7 +1067,7 @@ window.__emb = { get els() { return els; }, renderDesign, camera, controls, fit,
 const saved = store.get('design', null);
 loadDesign(Array.isArray(saved) && saved.length ? saved : defaultDesign(), store.get('params', null));
 setView('mesh');
-$('crankLen').value = store.get('crankLen', 55);
+$('keyW').value = store.get('keyW', 60);
 requestKit();
 {
   const l = store.get('look', 'relief');

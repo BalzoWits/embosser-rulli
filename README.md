@@ -19,7 +19,7 @@ impostazione di stampa) oppure gli STL, singoli o tutti in uno zip.
 ## Portarulli (scheda "Portarulli")
 
 `kit.js` genera anche il resto dell'embosser: scocca, coperchio a scatto, quattro ingranaggi e una
-manovella estraibile con impugnatura girevole. È una ricostruzione con le stesse misure di incastro
+chiave a farfalla estraibile. È una ricostruzione con le stesse misure di incastro
 dell'originale (perni con cono, ingranaggi 24 denti modulo 1,24, interasse 30,1, pila 3,3 + 10 + 60 + 10),
 con alcune scelte diverse:
 
@@ -31,9 +31,9 @@ con alcune scelte diverse:
   larga del coperchio (Ø24/27), innestato con un esagono da 12 nell'ingranaggio alto B. La prima versione
   teneva quell'asse solo con la manovella (gioco ~0,5 mm): sotto carico il rullo B si inclinava, i rulli si
   aprivano in alto e incidevano poco;
-- manovella estraibile con aggancio a baionetta sul collare del mozzo: coppa con 3 denti che entrano dalle fessure e,
-  girando di 40° nel verso della freccia, vanno sotto il bordo fino al fermo (prima un quadro da 6,1 che si rompeva,
-  poi un esagono da 15,6 che si sfilava);
+- chiave a farfalla estraibile al posto della manovella, stampata piatta (strati lungo la lama): lama 16×6 nella
+  fessura del mozzo, due linguette con dentino che scattano in due tacche; si sfila tirando. Prima: quadro da 6,1 che si
+  rompeva, esagono da 15,6 che si sfilava, baionetta scartata;
 - scritta INSERT HERE incisa accanto alla feritoia d'ingresso; uscita larga 8 mm;
 - nomi dei file numerati nell'ordine di montaggio, STL anche tutti in uno zip con il file della licenza;
 - fondo della feritoia a 2,5 mm sopra la base dei rulli: il biglietto (55 mm) resta centrato sulla zona del disegno.

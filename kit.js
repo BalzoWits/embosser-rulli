@@ -1,9 +1,9 @@
-// Portarulli: scocca, coperchio, 4 ingranaggi e manovella estraibile, compatibili con i rulli di geometry.js.
+// Portarulli: scocca, coperchio, 4 ingranaggi e chiave estraibile, compatibili con i rulli di geometry.js.
 // Disegnato da zero, compatibile con il "Business Card Embosser" di MakerSpace.Online:
 // stessi incastri e stessa pila verticale, pezzi ridisegnati. Modulo puro (browser e node).
 //
 // Riferimento del montaggio: z = 0 sotto la scocca. Rullo A (positivo) a x = -15,05, rullo B (negativo,
-// lato manovella) a x = +15,05. Il biglietto entra dal davanti (-y) ed esce dietro (+y).
+// lato chiave) a x = +15,05. Il biglietto entra dal davanti (-y) ed esce dietro (+y).
 // Fase: ogni ingranaggio ha un segno a +x locale. Gli A hanno un dente sul segno, i B un vano. Montando
 // tutti i segni (e le tacche dei rulli) rivolti verso l'altro rullo, i denti ingranano e i rulli sono in fase.
 
@@ -13,7 +13,7 @@ const TAU = Math.PI * 2;
 const D2R = Math.PI / 180;
 
 export const KIT_DEFAULTS = {
-  crankLen: 55,     // distanza asse manovella - impugnatura
+  keyW: 60,         // larghezza della chiave (ali)
 };
 
 export const K = {
@@ -54,19 +54,17 @@ export const K = {
   seatTopR: 12.1, seatBotR: 13.6,   // sede conica nel coperchio (sopra stretta, sotto larga)
   seatVGap: 0.2,                    // gioco verticale nel cono (~0,09 radiale)
   hubKeyAF: 12, gearHexAF: 12.2, gearHexDepth: 7,   // esagono mozzo -> ingranaggio alto B
-  bossR: 11.8, bossH: 6.2,          // collare sopra il coperchio, con le scanalature dell'aggancio
-  // aggancio a baionetta della manovella: la coppa della manovella scende sul collare, 3 denti entrano
-  // dalle fessure verticali e girando di bayTravel° nel senso della freccia vanno sotto il bordo fino al fermo.
-  // Quote dei denti nel riferimento del mozzo (z = 0 sulla faccia alta dell'ingranaggio B).
-  bayLugs: 3, bayLugW: 28, bayEntryW: 34, bayTravel: 40,
-  bayA: 4.8,          // sotto dei denti (= fondo della coppa)
-  bayHi: 1.4,         // altezza del dente sul lato interno; sopra sale a 45° (si stampa senza supporti)
-  bayLugIn: 10.7,     // raggio interno dei denti
-  bayGrooveIn: 10.5,  // raggio di fondo della scanalatura
-  cupR: 12.1, cupT: 2.2,
-  // manovella (prima una chiave a quadro da 6,1 che si rompeva, poi un esagono che si sfilava)
-  armT: 7, armW0: 22, armW1: 14,
-  gripR: 8, gripL: 28, gripPinR: 3.0, gripHoleR: 3.15, gripLip: 0.45, gripSlot: 1.3,
+  bossR: 11.8, bossH: 6.2,          // collare sopra il coperchio, con la fessura della chiave
+  // chiave a farfalla (prima una manovella: quadro da 6,1 che si rompeva, poi esagono che si sfilava).
+  // Si stampa piatta: gli strati corrono lungo la lama, che regge bene la torsione.
+  keyT: 6,             // spessore
+  keyBladeW: 16,       // larghezza della lama che entra nel mozzo
+  slotClr: 0.2,        // gioco per lato nella fessura
+  slotBot: 1.2,        // fondo della fessura (quota del mozzo)
+  keyGap: 0.3,         // tra spalla della chiave e collare
+  keySlitIn: 4.6, keySlitW: 1.4, keySlitTop: 1.0,   // fessure che rendono elastiche le due linguette esterne
+  keyBump: 0.5, keyBumpV: 5.6,      // dentino sulle linguette (sporge 0,3 oltre la parete) e sua profondità
+  keyLobeR: 13, keyHoleR: 5,
 };
 
 // quote derivate della pila
@@ -286,7 +284,7 @@ export function buildLid(wasm, bodyInfo) {
   return lid;
 }
 
-// quote del mozzo senza costruirlo (servono alla manovella)
+// quote del mozzo senza costruirlo (servono alla chiave)
 function buildHubInfo() {
   const st = stack();
   return { bossTop: st.zLid - st.zTopFace + K.lidT + K.bossH };
@@ -294,7 +292,7 @@ function buildHubInfo() {
 
 // ---------------------------------------------------------------- mozzo (lato B)
 // Riferimento: asse z, z = 0 sulla faccia superiore dell'ingranaggio alto B. Sotto: esagono nell'ingranaggio;
-// in mezzo: cono che appoggia nella sede del coperchio; sopra: collare con le scanalature a baionetta della manovella.
+// in mezzo: cono che appoggia nella sede del coperchio; sopra: collare con la fessura della chiave.
 export function buildHub(wasm) {
   const { Manifold, CrossSection } = wasm;
   const st = stack();
@@ -312,69 +310,52 @@ export function buildHub(wasm) {
   const kLen = K.gearHexDepth - 0.3;
   hub = hub.add(kx.extrude(kLen - 0.6 + 0.01).translate([0, 0, -kLen + 0.6]))
     .add(kx.extrude(0.6, 0, 0, [(K.hubKeyAF - 1.2) / K.hubKeyAF, (K.hubKeyAF - 1.2) / K.hubKeyAF]).mirror([0, 0, 1]).translate([0, 0, -kLen + 0.6]));
-  // baionetta: per ogni dente una fessura verticale d'ingresso e una scanalatura che gira in senso orario
-  // fino al fermo. Il fondo della scanalatura scende a 45° verso l'esterno: stampato capovolto non ha sbalzi.
-  const a = K.bayA, gi = K.bayGrooveIn, R2 = K.bossR + 1;
-  const ceil = (r) => a + K.bayHi + 0.3 + (r - K.bayLugIn);       // 0,3 di gioco sopra il dente
-  const floorZ = (r) => a - 0.2 - (r - gi);
-  const groove = Manifold.revolve(new CrossSection([[[gi, floorZ(gi)], [R2, floorZ(R2)], [R2, ceil(R2)], [gi, ceil(gi)]]]), 128);
-  const entry = Manifold.revolve(new CrossSection([[[gi, floorZ(gi)], [R2, floorZ(R2)], [R2, bossTop + 1], [gi, bossTop + 1]]]), 128);
-  const zz = [-1, bossTop + 2];
-  for (const th of bayAngles()) {
-    const te = th + K.bayTravel;
-    hub = hub.subtract(groove.intersect(pie(CrossSection, R2 + 1, th - K.bayLugW / 2 - 0.5, te + K.bayEntryW / 2).extrude(zz[1] - zz[0]).translate([0, 0, zz[0]])))
-      .subtract(entry.intersect(pie(CrossSection, R2 + 1, te - K.bayEntryW / 2, te + K.bayEntryW / 2).extrude(zz[1] - zz[0]).translate([0, 0, zz[0]])));
+  // fessura rettangolare per la lama della chiave, con invito smussato e due tacche per i dentini
+  const sw = K.keyBladeW + 2 * K.slotClr, sy = K.keyT + 2 * K.slotClr;
+  hub = hub.subtract(CrossSection.square([sw, sy], true).extrude(bossTop - K.slotBot + 1).translate([0, 0, K.slotBot]))
+    .subtract(CrossSection.square([sw + 1.2, sy + 1.2], true).extrude(0.6, 0, 0, [sw / (sw + 1.2), sy / (sy + 1.2)]).mirror([0, 0, 1]).translate([0, 0, bossTop + 0.01]));
+  const zb = bossTop - K.keyBumpV, x0 = sw / 2 - 0.01, x1 = K.keyBladeW / 2 + K.keyBump + 0.2;
+  for (const sg of [1, -1]) {
+    const notch = new CrossSection([[[sg * x0, zb - 1.0], [sg * x1, zb - 0.3], [sg * x1, zb + 0.3], [sg * x0, zb + 1.0]]], 'EvenOdd');
+    hub = hub.subtract(xzPlate(notch, sy));
   }
   return { hub, bossTop };
 }
 
-// angoli dei denti della baionetta a manovella agganciata (a fine corsa)
-const bayAngles = () => Array.from({ length: K.bayLugs }, (_, i) => 90 + i * 360 / K.bayLugs);
-// spicchio di cerchio da t0 a t1 gradi (antiorario)
-function pie(CS, R, t0, t1) {
-  const pts = [[0, 0]], n = Math.max(4, Math.ceil((t1 - t0) / 3));
-  for (let i = 0; i <= n; i++) { const t = (t0 + (t1 - t0) * i / n) * Math.PI / 180; pts.push([R * Math.cos(t), R * Math.sin(t)]); }
-  return new CS([pts]);
-}
+// profilo nel piano (x, z) estruso lungo y, centrato su y = 0
+const xzPlate = (cs, t) => cs.extrude(t).translate([0, 0, -t / 2]).rotate([90, 0, 0]);
 
-// ---------------------------------------------------------------- manovella estraibile
-// Riferimento: asse della manovella sull'asse z, z = 0 al sotto del braccio. Coppa a baionetta verso -z.
-export function buildCrank(wasm, { crankLen = KIT_DEFAULTS.crankLen } = {}) {
-  const { Manifold, CrossSection } = wasm;
+// ---------------------------------------------------------------- chiave a farfalla estraibile
+// Profilo nel piano (u, v): u orizzontale, v verticale con v = 0 sul collare del mozzo. La lama scende nella
+// fessura; le due linguette esterne hanno un dentino che scatta nelle tacche (tirando si sfila).
+// Restituisce la chiave piatta (da stampare) e quella in piedi per il montaggio.
+export function buildKey(wasm, { keyW = KIT_DEFAULTS.keyW } = {}) {
+  const { CrossSection } = wasm;
   const st = stack();
   const { bossTop } = buildHubInfo();
-  const zCollar = st.zTopFace + bossTop + 0.2;                // sotto del braccio nel montaggio
-  const L = crankLen;
-  // braccio: inviluppo tra il mozzo e la testa dell'impugnatura
-  const arm2d = CrossSection.hull([CrossSection.circle(K.armW0 / 2, 64), CrossSection.circle(K.armW1 / 2, 64).translate([L, 0])]);
-  let arm = arm2d.extrude(K.armT);
-  const cupOut = K.cupR + K.cupT;
-  arm = arm.add(Manifold.cylinder(K.armT, cupOut, cupOut, 128));
-  // coppa che scende sul collare del mozzo, con i denti della baionetta in fondo
-  const dz = -(bossTop + 0.2);                      // da quote del mozzo a quote della manovella
-  const cupH = bossTop + 0.2 - K.bayA;
-  let cup = Manifold.cylinder(cupH + 0.01, cupOut, cupOut, 128).subtract(Manifold.cylinder(cupH + 1, K.cupR, K.cupR, 128).translate([0, 0, -0.5]))
-    .translate([0, 0, -cupH]);
-  const li = K.bayLugIn, ro = K.cupR + 0.3, a0 = K.bayA;
-  // dente: sotto piano, lato interno alto bayHi, sopra a 45° fino alla parete (stampato capovolto, senza sbalzi)
-  const lugRing = Manifold.revolve(new CrossSection([[[li, a0], [ro, a0], [ro, a0 + K.bayHi + (ro - li)], [li, a0 + K.bayHi]]]), 128).translate([0, 0, dz]);
-  for (const th of bayAngles()) {
-    cup = cup.add(lugRing.intersect(pie(CrossSection, ro + 2, th - K.bayLugW / 2, th + K.bayLugW / 2).extrude(30).translate([0, 0, -20])));
+  const g = K.keyGap, hw = K.keyBladeW / 2;
+  const tip = -(bossTop - K.slotBot) + 0.3;            // punta della lama, 0,3 sopra il fondo della fessura
+  // testa: collo e due ali tonde, raccordate
+  const R = K.keyLobeR, c = keyW / 2 - R, vc = g + 4 + R - 1;
+  const neck = CrossSection.square([18, 5], false).translate([-9, g]);
+  const lobeL = CrossSection.circle(R, 96).translate([-c, vc]), lobeR = CrossSection.circle(R, 96).translate([c, vc]);
+  let head = CrossSection.hull([neck, lobeL]).add(CrossSection.hull([neck, lobeR]));
+  head = head.offset(3, 'Round', 2, 64).offset(-3, 'Round', 2, 64).offset(-1.5, 'Round', 2, 64).offset(1.5, 'Round', 2, 64);
+  head = head.intersect(CrossSection.square([keyW + 10, 200], false).translate([-(keyW + 10) / 2, g])); // spalla piatta
+  head = head.subtract(CrossSection.circle(K.keyHoleR, 64).translate([-c, vc])).subtract(CrossSection.circle(K.keyHoleR, 64).translate([c, vc]));
+  // lama con punta smussata
+  let blade = new CrossSection([[[-hw + 0.8, tip], [hw - 0.8, tip], [hw, tip + 0.8], [hw, g + 1], [-hw, g + 1], [-hw, tip + 0.8]]]);
+  // fessure: linguette esterne elastiche
+  for (const sg of [1, -1]) {
+    const u0 = sg > 0 ? K.keySlitIn : -K.keySlitIn - K.keySlitW;
+    blade = blade.subtract(CrossSection.square([K.keySlitW, -K.keySlitTop - tip + 0.5], false).translate([u0, tip - 0.5]));
+    const vb = -K.keyBumpV, b = K.keyBump;
+    blade = blade.add(new CrossSection([[[sg * (hw - 0.01), vb - 0.8], [sg * (hw + b), vb - 0.2], [sg * (hw + b), vb + 0.2], [sg * (hw - 0.01), vb + 0.8]]], 'EvenOdd'));
   }
-  let crank = arm.add(cup);
-  crank = crank.subtract(Manifold.cylinder(K.armT + 2, K.gripHoleR, K.gripHoleR, 48).translate([L, 0, -1]));
-  // impugnatura girevole: manicotto con due linguette a scatto che passano nel foro del braccio
-  const sleeve = Manifold.cylinder(K.gripL, K.gripR, K.gripR, 96)
-    .subtract(Manifold.cylinder(1.2, K.gripR + 1, K.gripR, 96).translate([0, 0, K.gripL - 1.2])) // bordo arrotondato in cima
-    .add(Manifold.cylinder(1.2, K.gripR, K.gripR - 1.2, 96).translate([0, 0, K.gripL - 1.21]));
-  const pinLen = K.armT + 0.5; // 0,3 sopra il braccio + 0,2 di gioco sotto
-  let pin = Manifold.cylinder(pinLen + 0.01, K.gripPinR, K.gripPinR, 48).translate([0, 0, -pinLen]);
-  // dente a cono: entra stringendo le due linguette, poi la spalla trattiene sotto il braccio
-  const lip = Manifold.cylinder(1.6, K.gripPinR - 0.5, K.gripPinR + K.gripLip, 48).translate([0, 0, -pinLen - 1.59]);
-  pin = pin.add(lip);
-  pin = pin.subtract(Manifold.cube([K.gripSlot, 20, pinLen + 2.2], false).translate([-K.gripSlot / 2, -10, -pinLen - 2.2]));
-  const grip = sleeve.translate([0, 0, 0.3]).add(pin.translate([0, 0, 0.3]));
-  return { crank, grip, zCollar, L };
+  const prof = head.add(blade);
+  const flat = prof.extrude(K.keyT);
+  const upright = xzPlate(prof, K.keyT);               // in piedi, centrata sull'asse; z = 0 sul collare
+  return { flat, upright, zBase: st.zTopFace + bossTop, W: keyW };
 }
 
 // ---------------------------------------------------------------- kit completo
@@ -387,7 +368,7 @@ export function buildKit(wasm, params = {}) {
   const gearA = buildGear(wasm, { type: 'A', bore: 'post' });
   const gearB = buildGear(wasm, { type: 'B', bore: 'post' });
   const gearBk = buildGear(wasm, { type: 'B', bore: 'socket' });
-  const { crank, grip, zCollar, L } = buildCrank(wasm, p);
+  const key = buildKey(wasm, p);
   const { hub } = buildHub(wasm);
 
   // pezzi da stampare (in piedi sul piatto, senza supporti)
@@ -406,8 +387,7 @@ export function buildKit(wasm, params = {}) {
     gearB: onBed(gearB),
     gearBk: onBed(gearBk),
     hub: onBed(flip(hub)),            // collare sul piatto: il cono si allarga salendo, niente supporti
-    crank: onBed(flip(crank)),
-    grip: onBed(flip(grip)),
+    key: onBed(key.flat),            // piatta: gli strati seguono la lama
   };
 
   // montaggio (per anteprima e test): ingranaggi A verso +x, B ruotati di 180°
@@ -420,11 +400,10 @@ export function buildKit(wasm, params = {}) {
     gearA2: topFlip(gearA).translate([-a, 0, st.zTopFace]),
     gearBk: topFlip(gearBk).rotate([0, 0, 180]).translate([a, 0, st.zTopFace]),
     hub: hub.translate([a, 0, st.zTopFace]),
-    crank: crank.translate([a, 0, zCollar]),
-    grip: grip.translate([a + L, 0, zCollar + K.armT]),
+    key: key.upright.translate([a, 0, key.zBase]),
   };
   for (const [k, m] of Object.entries(print)) {
     if (m.status() !== 'NoError' || m.isEmpty()) throw new Error(`Geometria non valida: ${k} (${m.status()})`);
   }
-  return { print, asm, stack: st, info: { crankLen: L, bodyH: st.zLidTop, rollerZ: st.zRoller, axis: a } };
+  return { print, asm, stack: st, info: { keyW: key.W, bodyH: st.zLidTop, rollerZ: st.zRoller, axis: a } };
 }
