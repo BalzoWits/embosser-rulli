@@ -26,14 +26,14 @@ export const K = {
   teeth: 24,
   module: 1.24,
   pressure: 20,
-  backlash: 0.12,      // assottigliamento del dente sul primitivo
+  backlash: 0.05,      // assottigliamento del dente sul primitivo (come l'originale)
   gearChamfer: 0.5,
-  peg: 11.4,           // perno quadro nell'incastro 12×12 dei rulli
-  pegR: 0.6,
+  peg: 11.8,           // perno quadro nell'incastro 12×12 dei rulli: 0,1 per lato come l'originale
+  pegR: 0.8,           // (con 11,4 il rullo scivolava di 0,3 per lato e i rulli si aprivano)
   pegTip: 0.8,
   // perno della scocca / del coperchio e foro dell'ingranaggio (misure dell'originale)
   postR: 6.8, postCyl: 4.7, postConeH: 3.3, postTopR: 5.1,
-  holeR: 7.0, holeCyl0: 0.7, holeCyl1: 4.7, holeCone1: 8.8, holeTopR: 5.0,
+  holeR: 7.0, holeCyl0: 0.7, holeCyl1: 4.7, holeCone1: 8.8, holeTopR: 4.89, // cono parallelo a quello del perno: gioco 0,2 costante
   // scocca
   wall: 2.6,
   innerClr: 1.0,       // dall'ingranaggio alla parete interna
